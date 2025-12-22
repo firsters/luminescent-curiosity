@@ -56,7 +56,7 @@ export function InventoryProvider({ children }) {
       ...itemData,
       familyId,
       status: 'available', // Default status
-      addedDate: Timestamp.now(),
+      addedDate: itemData.addedDate ? Timestamp.fromDate(itemData.addedDate) : Timestamp.now(),
       expiryDate: itemData.expiryDate ? Timestamp.fromDate(itemData.expiryDate) : null,
       createdBy: currentUser?.uid
     });
@@ -70,6 +70,9 @@ export function InventoryProvider({ children }) {
       const safeUpdates = { ...updates };
       if (safeUpdates.expiryDate instanceof Date) {
           safeUpdates.expiryDate = Timestamp.fromDate(safeUpdates.expiryDate);
+      }
+      if (safeUpdates.addedDate instanceof Date) {
+          safeUpdates.addedDate = Timestamp.fromDate(safeUpdates.addedDate);
       }
     return updateDoc(doc(db, 'inventory', id), safeUpdates);
   }

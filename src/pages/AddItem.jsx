@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
 import { fetchProductFromBarcode } from "../lib/openFoodFacts";
@@ -9,8 +9,11 @@ import { compressImage } from "../lib/imageCompression";
 
 export default function AddItem() {
   const navigate = useNavigate();
-  const { addItem } = useInventory();
+  const location = useLocation();
+  const { addItem, updateItem } = useInventory();
   const { fridges } = useFridge();
+
+  const editItem = location.state?.editItem;
 
   // Constants
   const DEFAULT_CATEGORIES = [
@@ -33,25 +36,25 @@ export default function AddItem() {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const [formData, setFormData] = useState({
-    name: "",
-    foodCategory: "fruit", // fruit, vegetable, meat, dairy, frozen
-    fridgeId: "", // Selected Fridge ID
-    quantity: 1,
-    unit: "개",
-    expiryDate: new Date().toISOString().split("T")[0],
-    buyDate: new Date().toISOString().split("T")[0],
-    barcode: "",
+    name: editItem?.name || "",
+    foodCategory: editItem?.foodCategory || editItem?.category || "fruit", // category might be stored as foodCategory or category
+    fridgeId: editItem?.fridgeId || "", // Selected Fridge ID
+    quantity: editItem?.quantity || 1,
+    unit: editItem?.unit || "개",
+    expiryDate: editItem?.expiryDate ? new Date(editItem.expiryDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    buyDate: editItem?.addedDate ? new Date(editItem.addedDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    barcode: editItem?.barcode || "",
   });
 
-  // Set default fridge when fridges load
+  // Set default fridge when fridges load (only if not editing)
   useEffect(() => {
-    if (fridges.length > 0 && !formData.fridgeId) {
+    if (!editItem && fridges.length > 0 && !formData.fridgeId) {
       setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
     }
-  }, [fridges]);
+  }, [fridges, editItem]);
 
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(editItem?.photoUrl || null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
 
@@ -165,17 +168,24 @@ export default function AddItem() {
         photoUrl = null;
       }
 
-      await addItem({
+      const itemPayload = {
         name: formData.name,
         fridgeId: formData.fridgeId, // Save specific fridge ID
         foodCategory: formData.foodCategory,
+        category: formData.foodCategory, // Backwards compatibility if needed
         quantity: Number(formData.quantity),
         unit: formData.unit,
         expiryDate: new Date(formData.expiryDate),
         addedDate: new Date(formData.buyDate),
         barcode: formData.barcode,
         photoUrl: photoUrl,
-      });
+      };
+
+      if (editItem) {
+          await updateItem(editItem.id, itemPayload);
+      } else {
+          await addItem(itemPayload);
+      }
 
       // Navigate back to the fridge we just added to
       const targetFridge = fridges.find((f) => f.id === formData.fridgeId);
@@ -185,7 +195,7 @@ export default function AddItem() {
         }`
       );
     } catch (error) {
-      alert("적재 중 오류 발생: " + error.message);
+      alert((editItem ? "수정" : "적재") + " 중 오류 발생: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -223,7 +233,7 @@ export default function AddItem() {
           <span className="material-symbols-outlined nav-icon">close</span>
         </button>
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-center">
-          음식 추가
+          {editItem ? "음식 수정" : "음식 추가"}
         </h2>
         <div className="size-10"></div>
       </div>
@@ -513,7 +523,7 @@ export default function AddItem() {
             ) : (
               <>
                 <span className="material-symbols-outlined">kitchen</span>
-                냉장고에 넣기
+                {editItem ? "수정 완료" : "냉장고에 넣기"}
               </>
             )}
           </button>

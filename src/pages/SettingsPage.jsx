@@ -241,7 +241,7 @@ export default function SettingsPage() {
                     로그아웃
                 </button>
                 <div className="text-center mt-2">
-                    <span className="text-xs text-gray-400">버전 1.0.0</span>
+                    <span className="text-xs text-gray-400">버전 {__APP_VERSION__} ({__BUILD_DATE__})</span>
                 </div>
             </div>
         </section>

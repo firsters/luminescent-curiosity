@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Integrated Search - Fridge App</title>
+<!-- Google Fonts -->
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=64894"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e65e",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112116",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c3022",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .filled-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-50 font-display transition-colors duration-200">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- Top App Bar -->
+<header class="flex items-center p-4 sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-white" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">통합 검색</h2>
+<div class="flex w-10 items-center justify-end">
+<!-- Placeholder for balance -->
+</div>
+</header>
+<!-- Search Bar Area -->
+<div class="px-4 pb-2">
+<div class="relative flex items-center w-full h-12 rounded-2xl bg-white dark:bg-surface-dark shadow-sm border border-slate-100 dark:border-white/5 transition-all focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary">
+<div class="flex items-center justify-center pl-4 text-primary">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="flex-1 w-full h-full bg-transparent border-none focus:ring-0 text-base font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white px-3" placeholder="음식 이름 검색 (예: 계란, 우유)" type="text" value="계란"/>
+<button class="flex items-center justify-center pr-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined filled-icon" style="font-size: 20px;">cancel</span>
+</button>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="w-full overflow-x-auto scrollbar-hide py-3 pl-4">
+<div class="flex gap-2 pr-4">
+<!-- Active Chip -->
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-white px-5 shadow-md shadow-primary/30 transition-transform active:scale-95">
+<p class="text-sm font-bold leading-normal">전체</p>
+</button>
+<!-- Inactive Chips -->
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 px-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<p class="text-slate-600 dark:text-slate-300 text-sm font-medium leading-normal">유통기한 임박</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 px-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<p class="text-slate-600 dark:text-slate-300 text-sm font-medium leading-normal">냉동실</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 px-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<p class="text-slate-600 dark:text-slate-300 text-sm font-medium leading-normal">냉장실</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 px-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<p class="text-slate-600 dark:text-slate-300 text-sm font-medium leading-normal">실온</p>
+</button>
+</div>
+</div>
+<!-- Results Section -->
+<div class="flex-1 flex flex-col pt-2">
+<!-- Headline -->
+<div class="flex items-center justify-between px-4 pb-3 pt-2">
+<h3 class="text-lg font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
+                    검색 결과 <span class="text-primary ml-1">4</span>
+</h3>
+<button class="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">
+                    정렬: 최신순
+                </button>
+</div>
+<!-- List Items -->
+<div class="flex flex-col gap-3 px-4 pb-20">
+<!-- Item 1: Good State -->
+<div class="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 cursor-pointer">
+<div class="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden">
+<img alt="Fresh organic brown eggs in a carton" class="w-full h-full object-cover" data-alt="Fresh organic brown eggs in a carton" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqffh6TbBKGNefHEcEPQHKWsSJBoRqwoJlYlvwm8pleFLtrTHjgS8o4Uua22A2EBhL65ILRPeVxIKteKk2gIKuYHK9HVQx4TAcHaFQds20hoxQpgF6pFfXqRPcik4n8s80DLbHEXums3AGtHzwUqgDpfgsh1Wp86jJxdTyTm41K44lGzgBdkkr0nvKdgiPaacQ2sMrbDo9maXiW3urNEZpjvIZWyTO3tcrkT0eplekfDdfqCZTacG92GK_lvE8wcDUJb377Fa6nw"/>
+</div>
+<div class="flex flex-col justify-center flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-normal truncate">유기농 무항생제 계란</p>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">D-12</span>
+</div>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-[16px]">kitchen</span>
+<span class="truncate">냉장실 2번째 칸</span>
+</div>
+</div>
+</div>
+<!-- Item 2: Warning State -->
+<div class="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-amber-400/30 cursor-pointer">
+<div class="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden">
+<img alt="Boiled eggs cut in half" class="w-full h-full object-cover" data-alt="Boiled eggs cut in half" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSv7ioO2oU63FxuQw92qvUOQhttlHQ4StAD5abrpgeaplT325RTL_N8ZwZmCnqVJ5ZQtKV0RTUzSsEMkQhmcqZCy2E9Dz1NjWZbpFxcNfgddlx_o-fBXU8wm-wVZMMWJBUfV2mO_QnkcKvbnkbqoytA4zbHy4nyVPvoA0o6_SdvXyQr8LWkXrnKNbZ4y0dzekmlPp23nU2T8yA3mzpFqeoMJuafPXWF2ohaeH7szvBRkqL6G3RRn9EkwwWj78-4lUtm6a6NsGCBA"/>
+</div>
+<div class="flex flex-col justify-center flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-normal truncate">촉촉한 반숙란</p>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">D-3</span>
+</div>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-[16px]">door_front</span>
+<span class="truncate">냉장실 도어 포켓</span>
+</div>
+</div>
+</div>
+<!-- Item 3: Expired State -->
+<div class="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-red-500/30 cursor-pointer opacity-80 hover:opacity-100">
+<div class="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden grayscale-[50%] group-hover:grayscale-0 transition-all">
+<img alt="Leftover rolled omelet in container" class="w-full h-full object-cover" data-alt="Leftover rolled omelet in container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALTTD0XvNoI10sZJu_I8HOwLEFkLG6ks3B3hx0lPG6UlHTU7790jjGTLqj9K9juYDajTkhPzrEzoA85_wDG4dFJcPbcbIEACFRI--MtRvxscR8oX4sU3njP5gyTCh1ZfWARPkv--__b17NgRmpp4cYtJ6arPhhevRKzdByBr1s-WaJcrKUQXhEnHhP5ioPAXwL5EMpF9VvC5-v8sNDg4-1eMmggcDjqhZnXKmVe2DOAxjaw9tGrVHYgyahh7okU9dKT7QMeHmktg"/>
+</div>
+<div class="flex flex-col justify-center flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-normal truncate line-through decoration-slate-400">남은 계란말이</p>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 whitespace-nowrap">D-0</span>
+</div>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-[16px]">shelves</span>
+<span class="truncate">냉장실 1번째 칸</span>
+</div>
+</div>
+</div>
+<!-- Item 4: Frozen State -->
+<div class="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-blue-400/30 cursor-pointer">
+<div class="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden">
+<img alt="Frozen dumplings pack" class="w-full h-full object-cover" data-alt="Frozen dumplings pack" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkjk1SZh1v0TsLSO2AzsDGEeA8EwG0UbMw5sqHeCaAx5-c_u0Qp23t0BKNKBu7zPjRKB_RUuJSAqKhmulXuAd218saYmU3rKSzWK4PZuNfz8OmI-W1LzP2WuzBJHCrlMWkmL5p8VLLym8gxdNTRznEpd5b6NDNBOncknGEt0relBmfoq0yGdV6QPVpNe4m5gDdDTSpGarLToTTG3CI8hjq5EiSDeOh-rfy9UQ0L6niGGeifJ0czu8dRhFZ9CEp_QjOg_F47Q8kPw"/>
+<div class="absolute inset-0 bg-blue-500/10 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col justify-center flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-normal truncate">계란 볶음밥용 만두</p>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 whitespace-nowrap">D-45</span>
+</div>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-[16px]">ac_unit</span>
+<span class="truncate">냉동실 하단 서랍</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Searches (Subtle at bottom of filtered list for context or distinct section) -->
+<div class="px-6 pb-8 border-t border-slate-200 dark:border-white/5 pt-6 mt-2">
+<div class="flex justify-between items-center mb-3">
+<h4 class="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">최근 검색어</h4>
+<button class="text-xs text-slate-400 underline">지우기</button>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-200 dark:hover:bg-white/10 cursor-pointer transition-colors">
+                        우유
+                        <span class="material-symbols-outlined ml-1 text-slate-400 hover:text-slate-600 text-[14px]">close</span>
+</span>
+<span class="inline-flex items-center px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-200 dark:hover:bg-white/10 cursor-pointer transition-colors">
+                        삼겹살
+                        <span class="material-symbols-outlined ml-1 text-slate-400 hover:text-slate-600 text-[14px]">close</span>
+</span>
+<span class="inline-flex items-center px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-200 dark:hover:bg-white/10 cursor-pointer transition-colors">
+                        양파
+                        <span class="material-symbols-outlined ml-1 text-slate-400 hover:text-slate-600 text-[14px]">close</span>
+</span>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.fridgy.app",
+      "sha256_cert_fingerprints": [
+        "6C:B3:9B:C1:AC:00:41:ED:37:D6:1D:FC:19:78:4D:E8:91:D7:DA:04:C5:22:CF:94:8D:78:8C:70:E8:96:5B:35"
+      ]
+    }
+  }
+]

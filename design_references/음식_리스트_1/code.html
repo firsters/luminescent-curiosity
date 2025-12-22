@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Food List UI</title>
+<!-- Material Symbols Link -->
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=64888"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e65e",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112116",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c2e24",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar hiding for horizontal scroll */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e1b12] dark:text-[#f0f4f1] transition-colors duration-200">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md px-4 py-3 border-b border-black/5 dark:border-white/5">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-[#0e1b12] dark:text-white">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-[#0e1b12] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">마이 키친</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-[#0e1b12] dark:text-white">
+<span class="material-symbols-outlined text-2xl">more_horiz</span>
+</button>
+</div>
+</header>
+<!-- ProfileStats (Summary Dashboard) -->
+<div class="px-4 py-4">
+<div class="flex flex-wrap gap-3">
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent dark:border-white/5 p-4 items-center text-center">
+<p class="text-[#0e1b12] dark:text-white tracking-tight text-3xl font-bold leading-tight">18</p>
+<div class="flex items-center gap-1 opacity-70">
+<span class="material-symbols-outlined text-sm">kitchen</span>
+<p class="text-xs font-medium leading-normal">전체 품목</p>
+</div>
+</div>
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
+<div class="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
+<p class="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">3</p>
+<div class="flex items-center gap-1 text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined text-sm">warning</span>
+<p class="text-xs font-medium leading-normal">유통기한 임박</p>
+</div>
+</div>
+</div>
+</div>
+<!-- SearchBar -->
+<div class="px-4 pb-2">
+<label class="flex flex-col w-full">
+<div class="flex w-full items-center rounded-xl h-12 bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent focus-within:border-primary transition-colors overflow-hidden">
+<div class="text-primary dark:text-primary/80 flex items-center justify-center pl-4 pr-2">
+<span class="material-symbols-outlined text-2xl">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 resize-none bg-transparent text-[#0e1b12] dark:text-white placeholder:text-gray-400 focus:outline-none h-full px-2 text-base font-normal leading-normal" placeholder="어떤 음식을 찾으세요?"/>
+</div>
+</label>
+</div>
+<!-- Chips (Filter) -->
+<div class="flex gap-2 px-4 py-2 overflow-x-auto hide-scrollbar pb-4">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#19e65e] dark:bg-[#19e65e] pl-3 pr-4 shadow-md shadow-[#19e65e]/20 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[#0e1b12] text-sm">check</span>
+<p class="text-[#0e1b12] text-sm font-bold leading-normal">전체</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-white/10 pl-3 pr-4 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-gray-500 text-sm">hourglass_bottom</span>
+<p class="text-gray-600 dark:text-gray-300 text-sm font-medium leading-normal">임박</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-white/10 pl-3 pr-4 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-gray-500 text-sm">ac_unit</span>
+<p class="text-gray-600 dark:text-gray-300 text-sm font-medium leading-normal">냉장</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-white/10 pl-3 pr-4 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-gray-500 text-sm">inventory_2</span>
+<p class="text-gray-600 dark:text-gray-300 text-sm font-medium leading-normal">냉동</p>
+</button>
+</div>
+<!-- List Section: Expiring Soon -->
+<div class="px-4 mt-2">
+<div class="flex items-center justify-between pb-3">
+<h3 class="text-[#0e1b12] dark:text-white text-lg font-bold leading-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500 filled" style="font-variation-settings: 'FILL' 1;">error</span>
+                    빨리 먹어야 해요
+                </h3>
+<span class="text-xs font-bold text-red-500 bg-red-100 dark:bg-red-900/40 px-2 py-0.5 rounded-full">3개</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-red-100 dark:border-red-900/20 active:scale-[0.99] transition-transform">
+<div class="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
+<img alt="Milk" class="w-full h-full object-cover opacity-90" data-alt="Fresh milk bottle splash on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnu73IaccDKvcLvFqu5ptWW6xrtnskg2tYbFA1nm6hY0Rs5gSP5QlpXEyUaiaQhilHflatzaBPU4iwYy4VHclE1nBl18xdBM1AasrpDv68BKct_zz-IkV8I_EY339FT3IsbWVi6ADOu-ZXsnS16ZIQmxzSNQwNSHiAhqD2b8Jq3FSnELH-I6aCyMNtV0X3WFIiFYqYF5BGOAznJpecDlGQs_PJLlYIdL6Nl5TE8jwv1shz-F3t0hN6AjTw1HIRrWptO3Ugh5bPbA"/>
+<div class="absolute bottom-0 w-full h-1 bg-red-500"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">저지방 우유</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">유제품 • 1개 남음</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 px-2.5 py-1.5 text-red-600 dark:text-red-400 text-sm font-bold leading-none">
+                            D-1
+                        </div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-red-100 dark:border-red-900/20 active:scale-[0.99] transition-transform">
+<div class="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
+<img alt="Spinach" class="w-full h-full object-cover opacity-90" data-alt="Fresh raw spinach leaves on dark surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByb4eWj5nIszvbWO_ekMDuny0iUj00FTOo-PB5e2okjHp_vPV34fKJLkz-2HkNUN66LJKD-i1kQJJzAh45XA4-XsAr50OHWqPS-LWBP2P_1qws51AEBgMXBiF-f_kMsP56zUg0txYOl3ohwbCWZHwL0o1Neu9xq5ZX-8F7zm30Sul3D1ZI_5FMvVjuJzL7Zo5onYvznjfT2JESSyzV1mps88k43v89tGdZL-3r9UtwtRLf-3S8hIE09yCRPbbZqWGTksjQhhKWLg"/>
+<div class="absolute bottom-0 w-full h-1 bg-red-500"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">시금치 한 단</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">채소 • 반 봉지</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1.5 text-orange-600 dark:text-orange-400 text-sm font-bold leading-none">
+                            D-3
+                        </div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-red-100 dark:border-red-900/20 active:scale-[0.99] transition-transform">
+<div class="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
+<img alt="Salad" class="w-full h-full object-cover opacity-90" data-alt="Vegetable mix salad in bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA_HEIOyJBhLcrT8Wkm3UIfdYVNL-1uEQpKtbGyYYH-B0uuCEbDkRolsx-2YWsrKcmqjrUFDA_YeHjFKO3M4IoTpPTmSvpFJKJVdTNK0DclUsjmN0n5LImYZzqHFm7ciAotlH2jWddM9_AD_L1uepuELminnSWCI7mkg_23S_LaZCBEzAf2lPWMoWXEjxmI_TVifKvjs7Jfwar-INeZjvBy1kU__9z_v5VvRytIED2P9Fv8c6dutG2MSDc0QxjfFYN6u9kd2f4ig"/>
+<div class="absolute bottom-0 w-full h-1 bg-orange-500"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">샐러드 믹스</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">채소 • 2팩</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1.5 text-orange-600 dark:text-orange-400 text-sm font-bold leading-none">
+                            D-3
+                        </div>
+</div>
+</div>
+</div>
+</div>
+<!-- List Section: Safe -->
+<div class="px-4 mt-8">
+<h3 class="text-[#0e1b12] dark:text-white text-lg font-bold leading-tight px-0 pb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary filled" style="font-variation-settings: 'FILL' 1;">eco</span>
+                신선하게 보관 중
+            </h3>
+<div class="flex flex-col gap-3">
+<!-- Item 4 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent active:scale-[0.99] transition-transform">
+<div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden relative">
+<img alt="Eggs" class="w-full h-full object-cover opacity-90" data-alt="Fresh raw eggs in cartoon container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdBsvFt6K1sWmukBGjXiaWEmsKda3ZPaN7nHKNftXXlWhVg_zle2cCCZJAw7b43T2Q62Dnm6SH7oKaltxAyG9UkOv0RAk_t9FU3o15NXOH2qIwFTOPFWWwHkjPGdZ1hQadkpZyMXGhq6gR8otmiQRdCd4KqoV-kL6GHo35S_bJ0uQp5aTvxusTwQF2aIlYbC-4VAdES8I75QRWUhGj_lJfWWdB_20YphMYU33ysId3dISrJ8t14vmPgoWk7-npPKTuH_hzzRd-hg"/>
+<div class="absolute bottom-0 w-full h-1 bg-primary"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">무항생제 계란</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">유제품 • 10구</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<p class="text-[#0e1b12] dark:text-white text-sm font-bold">14일 남음</p>
+<p class="text-gray-400 text-xs">~12.25</p>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent active:scale-[0.99] transition-transform">
+<div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden relative">
+<img alt="Kimchi" class="w-full h-full object-cover opacity-90" data-alt="Traditional Korean Kimchi in jar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq1GY2SeW5CqgmbNfNJSlg3-rUUVg8ZTMON28KuhxNRST3mIaXV2acdt1zcL5TNrzgEYRz7BrmhvUhJNByvwBLooEIx214KfqOJYqvUZHA0dwoZORXJAE1KyphZE-IfSQBdn-EzriPGGNlQz4jg-EGcmuHmJ-hLafkAc_EcwZXiE2Jra4E8mUoFThKMRKqcDGSd5wVzkOHf0lDzuMqQI-K_JNc94I_TmzHjpu3IVTCAxFUHrZvo9potRMlG1gVjcC9jGpSi6Ts1Q"/>
+<div class="absolute bottom-0 w-full h-1 bg-primary"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">배추김치</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">반찬 • 1통</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<p class="text-[#0e1b12] dark:text-white text-sm font-bold">28일 남음</p>
+<p class="text-gray-400 text-xs">~01.12</p>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent active:scale-[0.99] transition-transform">
+<div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden relative">
+<img alt="Beef" class="w-full h-full object-cover opacity-90" data-alt="Raw beef steak meat on wooden board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxGB8dRd-f_tlqz_PnPQ-87FLG0YTqvJzx2LFXj6awBUjqVyd2-dW8YRd_UQgoA01e4nVxc3Xz19E1gjprrmr1EV_rCdwsinp0iGuopvPixYQ5jevEylD-1tAS0anfMHMI5c4feRHjpW8HZ7kawtNS2HSsSIXMqxVHjHzbMfXZYA-b8jVGmr9ph4R_S7KqFWZr67X4S4iOSs9EzrPCLxX9YWr_QaahmghvzeLBdj1e5kVb3wO3-Zy1hKCzwj_IpcBC8XWOyZtMzQ"/>
+<div class="absolute bottom-0 w-full h-1 bg-blue-400"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">한우 등심 (냉동)</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">육류 • 600g</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<p class="text-[#0e1b12] dark:text-white text-sm font-bold">60일 남음</p>
+<p class="text-gray-400 text-xs">~02.15</p>
+</div>
+</div>
+<!-- Item 7 -->
+<div class="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent active:scale-[0.99] transition-transform">
+<div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden relative">
+<img alt="Apple" class="w-full h-full object-cover opacity-90" data-alt="Fresh red apples pile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBemU61kpRgkdB8gg6Sb9AJetusnkdRnfFEzPZ2eGj3xOq777SRvcNBJY8kp35ApPQGo6C_zouA89oiy_D6QOx0Ps-RpP-8q-_L_1VSj0OtyBTgiKA3M8dMmblIcKkJuSMMDCYpLnocIRUDccC4YVBmsKtoxEf1nwc2QypnF_qiSKCujYefK68pGcp8UpVJbxZhTOQog7wmCxDEUE4lb-5cHaezJiASnPrsYLEYH7lQlqij59jfrhAQy6N7p_r_vZFBN0pmdBVM4A"/>
+<div class="absolute bottom-0 w-full h-1 bg-primary"></div>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">부사 사과</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">과일 • 5개</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<p class="text-[#0e1b12] dark:text-white text-sm font-bold">10일 남음</p>
+<p class="text-gray-400 text-xs">~12.21</p>
+</div>
+</div>
+</div>
+</div>
+<!-- FAB (Floating Action Button) -->
+<div class="fixed bottom-24 right-5 z-40">
+<button class="flex size-14 items-center justify-center rounded-full bg-[#19e65e] text-[#0e1b12] shadow-lg shadow-[#19e65e]/40 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-black/5 dark:border-white/5 pb-5 pt-2 px-6">
+<div class="flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">홈</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-primary dark:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl filled" style="font-variation-settings: 'FILL' 1;">kitchen</span>
+<span class="text-[10px] font-bold">냉장고</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">restaurant_menu</span>
+<span class="text-[10px] font-medium">레시피</span>
+</button>
+<button class="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">마이</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>음식 추가 - Add Food</title>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=64898"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e65e",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112116",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c2e24",
+                        "border-light": "#e2e8f0",
+                        "border-dark": "#2f4035",
+                        "text-main-light": "#0e1b12",
+                        "text-main-dark": "#f0fdf4",
+                        "text-sub-light": "#4b5563",
+                        "text-sub-dark": "#9ca3af",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-text-main-dark transition-colors duration-200">
+<div class="relative flex h-full min-h-screen w-full flex-col group/design-root overflow-hidden">
+<div class="flex items-center p-4 pb-2 justify-between bg-background-light dark:bg-background-dark sticky top-0 z-10">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-text-main-light dark:text-text-main-dark" style="font-size: 24px;">close</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-center">음식 추가</h2>
+<div class="size-10"></div> 
+</div>
+<div class="flex-1 overflow-y-auto pb-32">
+<div class="grid grid-cols-2 gap-3 p-4">
+<button class="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary">
+<div class="rounded-full bg-primary/10 p-3 text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">photo_camera</span>
+</div>
+<span class="text-sm font-bold leading-tight">사진 촬영</span>
+</button>
+<button class="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary">
+<div class="rounded-full bg-primary/10 p-3 text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">qr_code_scanner</span>
+</div>
+<span class="text-sm font-bold leading-tight">바코드 스캔</span>
+</button>
+</div>
+<div class="px-4 pb-2">
+<div class="w-full h-40 rounded-xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-black/20 z-10 hidden group-hover:flex items-center justify-center transition-all">
+<span class="text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Change Photo</span>
+</div>
+<img alt="Fresh groceries in a paper bag on a wooden table" class="w-full h-full object-cover" data-alt="Fresh groceries in a paper bag on a wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO-MC5w8gWFfV91Mk1jGnrKqVK8fByjuhhoqZTE8WFUx-jL6XNB1Oe586BhLUzT2whJj0CektQmAf1-SN8avauDZbjrVlNthWnglfN95sYd7ra9tyWpw0I4EvJgzMYf1QD4glGJ9JzI1K7RoMMwQcHmdnNxn81Vq111Fw9yy6bsjdmJGFlnVQmt4AW52e2aW0DEWkTTywmz9-p8TMsCLznu8YEWvBCgETcvZSOsTcTiG8J09XfXgt3EoWf_MePMGO_U1zcBdFizg"/>
+</div>
+</div>
+<div class="flex flex-col gap-6 p-4">
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">냉장고</label>
+<div class="relative">
+<select class="w-full appearance-none rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-text-main-light dark:text-text-main-dark transition-all pr-10">
+<option>메인 냉장고</option>
+<option>김치 냉장고</option>
+<option>다용도실 냉장고</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-sub-light dark:text-text-sub-dark pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">이름</label>
+<div class="relative">
+<input class="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-text-sub-light dark:placeholder:text-text-sub-dark transition-all" placeholder="음식 이름 (예: 사과)" type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-sub-light dark:text-text-sub-dark pointer-events-none">edit</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">카테고리</label>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-background-dark px-4 shadow-sm active:scale-95 transition-all">
+<span class="text-sm font-bold">과일</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 active:scale-95 transition-all hover:bg-gray-50 dark:hover:bg-white/5">
+<span class="text-sm font-medium">채소</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 active:scale-95 transition-all hover:bg-gray-50 dark:hover:bg-white/5">
+<span class="text-sm font-medium">육류</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 active:scale-95 transition-all hover:bg-gray-50 dark:hover:bg-white/5">
+<span class="text-sm font-medium">유제품</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 active:scale-95 transition-all hover:bg-gray-50 dark:hover:bg-white/5">
+<span class="text-sm font-medium">냉동</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">수량</label>
+<div class="flex items-center gap-4 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-2 w-full max-w-[200px]">
+<button class="size-10 flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-primary active:text-background-dark transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<div class="flex-1 text-center">
+<span class="text-xl font-bold">1</span>
+<span class="text-sm text-text-sub-light dark:text-text-sub-dark ml-1">개</span>
+</div>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-background-dark hover:bg-primary/90 active:scale-95 transition-colors shadow-sm">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">유통기한</label>
+<div class="relative">
+<input class="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-text-main-light dark:text-text-main-dark h-[52px]" type="date" value="2023-11-20"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">구입 날짜</label>
+<div class="relative">
+<input class="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-text-main-light dark:text-text-main-dark h-[52px]" type="date" value="2023-11-13"/>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-base font-bold text-text-main-light dark:text-text-main-dark">보관 장소</label>
+<div class="flex w-full rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark p-1">
+<button class="flex-1 py-2 rounded-lg bg-primary/20 text-primary font-bold text-sm shadow-sm transition-all">
+                            냉장실
+                        </button>
+<button class="flex-1 py-2 rounded-lg text-text-sub-light dark:text-text-sub-dark font-medium text-sm hover:bg-background-light dark:hover:bg-white/5 transition-all">
+                            냉동실
+                        </button>
+<button class="flex-1 py-2 rounded-lg text-text-sub-light dark:text-text-sub-dark font-medium text-sm hover:bg-background-light dark:hover:bg-white/5 transition-all">
+                            실온
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-t border-border-light dark:border-border-dark z-20">
+<button class="w-full rounded-xl bg-primary py-4 text-center font-bold text-background-dark text-lg shadow-lg shadow-primary/20 active:scale-[0.99] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">kitchen</span>
+                냉장고에 넣기
+            </button>
+</div>
+</div>
+</body></html>

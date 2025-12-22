@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Global Styles (Optional overrides) */
+:root {
+  /* Retaining color variables for compatibility with existing components until fully migrated */
+  --primary: #4CAF50;
+  --primary-dark: #388E3C;
+  --secondary: #FFC107;
+  --danger: #d32f2f;
+  --background: #f5f5f5;
+  --surface: #ffffff;
+  --text-main: #212121;
+}
+
+body {
+  background-color: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-main);
+  /* Safe area for mobile */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Specific utilities if not using full Tailwind classes yet */
+.container {
+  @apply max-w-xl mx-auto p-4;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-sm p-4 mb-4;
+}
+
+.btn {
+  @apply bg-green-500 text-white font-bold py-3 px-5 rounded-xl w-full flex justify-center items-center gap-2 transition-transform active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-800;
+}

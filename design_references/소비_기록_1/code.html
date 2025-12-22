@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Consumption History</title>
+<script type="text/javascript" nonce="XOJ0BVE+zr3qdJZKBBAaLFbFzesxhK/xP1QmLnOdycs=" src="//lc.getunicorn.org?type=base-script&amp;request-id=64882"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e65e",
+                        "primary-content": "#0e3b1f", // Darker shade for text on primary or light backgrounds
+                        "background-light": "#f8fcf9",
+                        "background-dark": "#112116",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2f23",
+                        "text-main-light": "#0e1b12",
+                        "text-main-dark": "#e0e6e2",
+                        "text-sub-light": "#4e9767",
+                        "text-sub-dark": "#8abf9e",
+                        "border-light": "#d0e7d7",
+                        "border-dark": "#2c4a36",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for horizontal scroll areas */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex h-full min-h-screen w-full max-w-md mx-auto flex-col overflow-x-hidden shadow-xl">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+<div class="flex items-center p-4 justify-between h-16">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center text-text-main-light dark:text-text-main-dark">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-text-main-light dark:text-text-main-dark text-xl font-bold leading-tight tracking-tight">소비 기록</h2>
+</div>
+<div class="flex items-center justify-end">
+<button class="flex items-center justify-center rounded-full size-10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0, 'wght' 600;">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Filter Chips (Horizontal Scroll) -->
+<div class="flex gap-2 px-4 pb-3 pt-1 overflow-x-auto no-scrollbar">
+<!-- Active Chip -->
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-primary px-4 shadow-sm shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary-content text-[18px]">sort</span>
+<span class="text-primary-content text-sm font-bold">최신순</span>
+</button>
+<!-- Inactive Chips -->
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 transition-all active:scale-95 hover:bg-green-50 dark:hover:bg-green-900/20">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-[18px]">calendar_view_week</span>
+<span class="text-text-main-light dark:text-text-main-dark text-sm font-medium">이번 주</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 transition-all active:scale-95 hover:bg-green-50 dark:hover:bg-green-900/20">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-[18px]">calendar_month</span>
+<span class="text-text-main-light dark:text-text-main-dark text-sm font-medium">이번 달</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark px-4 transition-all active:scale-95 hover:bg-green-50 dark:hover:bg-green-900/20">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-[18px]">date_range</span>
+<span class="text-text-main-light dark:text-text-main-dark text-sm font-medium">기간 설정</span>
+</button>
+</div>
+</header>
+<!-- Stats Summary Section -->
+<section class="px-4 py-4 w-full">
+<div class="flex gap-3 w-full">
+<div class="flex flex-1 flex-col justify-between rounded-xl bg-gradient-to-br from-green-50 to-white dark:from-surface-dark dark:to-background-dark border border-primary/20 p-4 shadow-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">shopping_basket</span>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-semibold uppercase tracking-wider">이번 달 소비</span>
+</div>
+<p class="text-text-main-light dark:text-text-main-dark tracking-tight text-3xl font-extrabold">24<span class="text-base font-medium text-text-sub-light dark:text-text-sub-dark ml-1">개</span></p>
+</div>
+<div class="flex flex-1 flex-col justify-between rounded-xl bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark p-4 shadow-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-xl">schedule</span>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-semibold uppercase tracking-wider">가장 최근</span>
+</div>
+<p class="text-text-main-light dark:text-text-main-dark tracking-tight text-lg font-bold truncate">어제 저녁</p>
+</div>
+</div>
+</section>
+<!-- List Content -->
+<div class="flex-1 flex flex-col pb-20">
+<!-- Group: Today -->
+<div class="mb-2">
+<div class="sticky top-[120px] z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm px-4 py-2 border-b border-dashed border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark text-sm font-bold leading-tight flex items-center gap-2">
+                        오늘 <span class="text-primary font-medium">10월 27일</span>
+</h3>
+</div>
+<div class="flex flex-col">
+<!-- Item 1 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<!-- Icon Box -->
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">nutrition</span>
+</div>
+<!-- Content -->
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">사과 (부사)</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">오후 2:00</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">1개</span>
+<span class="text-xs text-gray-400 dark:text-gray-500">·</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 truncate">간식으로 섭취</span>
+</div>
+</div>
+<!-- Action (Hidden by default, shown on swipe/hover in desktop but adding button for mobile visual) -->
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">저지방 우유</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">오전 08:30</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">200ml</span>
+</div>
+</div>
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Group: Yesterday -->
+<div class="mb-2">
+<div class="sticky top-[120px] z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm px-4 py-2 border-b border-dashed border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark text-sm font-bold leading-tight flex items-center gap-2">
+                        어제 <span class="text-gray-400 dark:text-gray-500 font-medium">10월 26일</span>
+</h3>
+</div>
+<div class="flex flex-col">
+<!-- Item 3 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">egg</span>
+</div>
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">무항생제 계란</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">오후 7:15</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">2알</span>
+<span class="text-xs text-gray-400 dark:text-gray-500">·</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 truncate">저녁 요리</span>
+</div>
+</div>
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+<!-- Item 4 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">local_pizza</span>
+</div>
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">냉동 피자</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">오후 1:00</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">1판</span>
+</div>
+</div>
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Group: Last Week -->
+<div class="mb-2">
+<div class="sticky top-[120px] z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm px-4 py-2 border-b border-dashed border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark text-sm font-bold leading-tight flex items-center gap-2">
+                        이번 주 <span class="text-gray-400 dark:text-gray-500 font-medium">10월 22일 - 28일</span>
+</h3>
+</div>
+<div class="flex flex-col">
+<!-- Item 5 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">icecream</span>
+</div>
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">초코 아이스크림</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">10.25 (수)</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">1개</span>
+</div>
+</div>
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+<!-- Item 6 -->
+<div class="group relative flex items-center gap-4 px-4 py-3 hover:bg-white dark:hover:bg-surface-dark transition-colors border-b border-border-light/50 dark:border-border-dark/50 last:border-0">
+<div class="flex shrink-0 items-center justify-center rounded-xl bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 size-12 shadow-sm">
+<span class="material-symbols-outlined">bakery_dining</span>
+</div>
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-tight truncate pr-2">식빵</p>
+<span class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium whitespace-nowrap">10.24 (화)</span>
+</div>
+<div class="flex items-center mt-1 gap-2">
+<span class="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-text-sub-light dark:text-text-sub-dark ring-1 ring-inset ring-gray-500/10">3조각</span>
+</div>
+</div>
+<button class="shrink-0 size-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State Helper (Hidden in this populated view but structured for completion) -->
+<!-- 
+            <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+                <div class="size-24 bg-gray-100 dark:bg-surface-dark rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl text-gray-400">kitchen</span>
+                </div>
+                <h3 class="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-1">소비 기록이 없어요</h3>
+                <p class="text-sm text-text-sub-light dark:text-text-sub-dark">냉장고에 있는 음식을 소비 처리하면 여기에 기록됩니다.</p>
+            </div> 
+            -->
+</div>
+<!-- Floating Action Button (Optional - "Quick Add" consumption manual entry) -->
+<div class="fixed bottom-6 right-6 z-50 lg:absolute">
+<button class="flex items-center justify-center size-14 rounded-full bg-primary text-primary-content shadow-lg shadow-primary/40 hover:bg-green-400 transition-all active:scale-95">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+</div>
+</body></html>

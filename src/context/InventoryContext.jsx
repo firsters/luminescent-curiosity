@@ -3,7 +3,7 @@ import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
-const InventoryContext = createContext();
+export const InventoryContext = createContext();
 
 export function useInventory() {
   return useContext(InventoryContext);

@@ -3,7 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export function useAuth() {
   return useContext(AuthContext);

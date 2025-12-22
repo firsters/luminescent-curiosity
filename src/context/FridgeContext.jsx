@@ -3,7 +3,7 @@ import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy, getDocs } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
-const FridgeContext = createContext();
+export const FridgeContext = createContext();
 
 export function useFridge() {
   return useContext(FridgeContext);

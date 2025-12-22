@@ -10,6 +10,7 @@ import AddItem from './pages/AddItem';
 import SearchPage from './pages/SearchPage';
 import HistoryPage from './pages/HistoryPage';
 import SettingsPage from './pages/SettingsPage';
+import TestFridgeList from './pages/TestFridgeList';
 import { Link } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +76,8 @@ export default function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
+
+              <Route path="/test-fridge-list" element={<TestFridgeList />} />
 
             </Routes>
           </InventoryProvider>

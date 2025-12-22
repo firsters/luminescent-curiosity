@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
 import { fetchProductFromBarcode } from "../lib/openFoodFacts";
@@ -9,7 +9,8 @@ import { compressImage } from "../lib/imageCompression";
 
 export default function AddItem() {
   const navigate = useNavigate();
-  const { addItem } = useInventory();
+  const location = useLocation();
+  const { addItem, updateItem } = useInventory();
   const { fridges } = useFridge();
 
   // Constants
@@ -43,12 +44,36 @@ export default function AddItem() {
     barcode: "",
   });
 
+  const [editingId, setEditingId] = useState(null);
+
   // Set default fridge when fridges load
   useEffect(() => {
-    if (fridges.length > 0 && !formData.fridgeId) {
+    if (fridges.length > 0 && !formData.fridgeId && !editingId) {
       setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
     }
-  }, [fridges]);
+  }, [fridges, editingId]);
+
+  // Load edit item data if present
+  useEffect(() => {
+      if (location.state?.editItem) {
+          const item = location.state.editItem;
+          setEditingId(item.id);
+          setFormData({
+              name: item.name || '',
+              foodCategory: item.foodCategory || 'fruit', // fallback
+              fridgeId: item.fridgeId || (fridges[0] ? fridges[0].id : ''),
+              quantity: item.quantity || 1,
+              unit: item.unit || '개',
+              // Use slice to get YYYY-MM-DD from ISO string or Date object
+              expiryDate: item.expiryDate ? new Date(item.expiryDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              buyDate: item.addedDate ? new Date(item.addedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              barcode: item.barcode || ''
+          });
+          if (item.photoUrl) {
+              setImagePreview(item.photoUrl);
+          }
+      }
+  }, [location.state, fridges]);
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -158,24 +183,43 @@ export default function AddItem() {
 
     setLoading(true);
     try {
-      let photoUrl = imagePreview;
+      let photoUrl = null;
       if (imageFile) {
-        photoUrl = await uploadImage(imageFile);
-      } else if (imagePreview && !imagePreview.startsWith("http")) {
-        photoUrl = null;
+          // New file uploaded
+          photoUrl = await uploadImage(imageFile);
+      } else if (imagePreview && typeof imagePreview === 'string' && imagePreview.startsWith('http')) {
+          // Existing remote URL
+          photoUrl = imagePreview;
       }
+      // If imagePreview is blob (but no file?) or null, photoUrl remains null
 
-      await addItem({
-        name: formData.name,
-        fridgeId: formData.fridgeId, // Save specific fridge ID
-        foodCategory: formData.foodCategory,
-        quantity: Number(formData.quantity),
-        unit: formData.unit,
-        expiryDate: new Date(formData.expiryDate),
-        addedDate: new Date(formData.buyDate),
-        barcode: formData.barcode,
-        photoUrl: photoUrl,
-      });
+      if (editingId) {
+          await updateItem(editingId, {
+            name: formData.name,
+            fridgeId: formData.fridgeId,
+            foodCategory: formData.foodCategory,
+            quantity: Number(formData.quantity),
+            unit: formData.unit,
+            expiryDate: new Date(formData.expiryDate),
+            // Don't change addedDate usually on edit, but if user wants to change buyDate:
+            addedDate: new Date(formData.buyDate),
+            barcode: formData.barcode,
+            photoUrl: photoUrl,
+          });
+          alert('수정되었습니다.');
+      } else {
+          await addItem({
+            name: formData.name,
+            fridgeId: formData.fridgeId, // Save specific fridge ID
+            foodCategory: formData.foodCategory,
+            quantity: Number(formData.quantity),
+            unit: formData.unit,
+            expiryDate: new Date(formData.expiryDate),
+            addedDate: new Date(formData.buyDate),
+            barcode: formData.barcode,
+            photoUrl: photoUrl,
+          });
+      }
 
       // Navigate back to the fridge we just added to
       const targetFridge = fridges.find((f) => f.id === formData.fridgeId);
@@ -185,7 +229,7 @@ export default function AddItem() {
         }`
       );
     } catch (error) {
-      alert("적재 중 오류 발생: " + error.message);
+      alert("오류 발생: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -223,7 +267,7 @@ export default function AddItem() {
           <span className="material-symbols-outlined nav-icon">close</span>
         </button>
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-center">
-          음식 추가
+          {editingId ? '음식 수정' : '음식 추가'}
         </h2>
         <div className="size-10"></div>
       </div>
@@ -512,8 +556,8 @@ export default function AddItem() {
               <span>저장 중...</span>
             ) : (
               <>
-                <span className="material-symbols-outlined">kitchen</span>
-                냉장고에 넣기
+                <span className="material-symbols-outlined">{editingId ? 'save' : 'kitchen'}</span>
+                {editingId ? '수정 완료' : '냉장고에 넣기'}
               </>
             )}
           </button>

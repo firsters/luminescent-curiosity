@@ -316,6 +316,17 @@ export default function InventoryList() {
                         >
                             삭제
                         </button>
+
+                        <button
+                            onClick={() => {
+                                navigate('/add', { state: { editItem: selectedItem } });
+                            }}
+                            className="flex-1 py-4 rounded-2xl border border-primary/30 text-primary font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">edit</span>
+                            수정
+                        </button>
+
                         <button 
                             onClick={() => {
                                 consumeItem(selectedItem.id);

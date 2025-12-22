@@ -42,7 +42,13 @@ export default function FridgeList() {
   const expiringCount = items.filter(i => {
       if (!i.expiryDate) return false;
       const days = Math.ceil((i.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
-      return days <= 3;
+      return days <= 3 && days >= 0;
+  }).length;
+
+  // Helper for "Expired" (Global)
+  const expiredCount = items.filter(i => {
+      if (!i.expiryDate) return false;
+      return i.expiryDate < new Date();
   }).length;
 
   // Fridge Type Visuals
@@ -82,10 +88,16 @@ export default function FridgeList() {
                 <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">전체 보관</span>
                 <span className="mt-1 text-2xl font-bold text-text-main-light dark:text-text-main-dark">{items.filter(i => i.status === 'available').length}개</span>
             </Link>
-            <Link to="/inventory?filter=expiring" className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform">
-                <span className="text-xs font-semibold text-red-600 dark:text-red-400">유통기한 임박</span>
-                <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiringCount}개</span>
+            <Link to="/inventory?filter=expiring" className="flex min-w-[140px] flex-col rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">유통기한 임박</span>
+                <span className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">{expiringCount}개</span>
             </Link>
+            {expiredCount > 0 && (
+                <Link to="/inventory?filter=expired" className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform">
+                    <span className="text-xs font-semibold text-red-600 dark:text-red-400">유통기한 초과</span>
+                    <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiredCount}개</span>
+                </Link>
+            )}
         </div>
 
         {/* Fridge Grid */}

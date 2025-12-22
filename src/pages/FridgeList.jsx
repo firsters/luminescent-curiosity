@@ -6,7 +6,7 @@ import { useInventory } from '../context/InventoryContext';
 
 export default function FridgeList() {
   const { logout } = useAuth();
-  const { fridges, loading: fridgeLoading, addFridge } = useFridge();
+  const { fridges, loading: fridgeLoading, addFridge, deleteFridge } = useFridge();
   const { items } = useInventory(); // To calculate stats
 
   // Local state for "Add Fridge" modal
@@ -30,6 +30,24 @@ export default function FridgeList() {
       } catch (error) {
           alert('Failed to add fridge: ' + error.message);
       }
+  };
+
+  const handleDeleteFridge = async (e, id, name) => {
+    e.preventDefault(); // Prevent Link navigation
+    e.stopPropagation();
+
+    if (!confirm(`'${name}' 냉장고를 삭제하시겠습니까?`)) return;
+
+    try {
+        await deleteFridge(id);
+    } catch (error) {
+        // Provide user-friendly error if items exist
+        if (error.message.includes("existing items")) {
+            alert("냉장고에 음식이 남아있어 삭제할 수 없습니다.\n먼저 음식을 비우거나 다른 냉장고로 이동해주세요.");
+        } else {
+            alert('냉장고 삭제 실패: ' + error.message);
+        }
+    }
   };
 
   // Helper to count items per fridge (client-side for now)
@@ -114,6 +132,14 @@ export default function FridgeList() {
                                     <div className="absolute right-2 bottom-2 rounded-full bg-white/90 dark:bg-black/60 p-1.5 backdrop-blur-sm shadow-sm">
                                         <span className={`material-symbols-outlined text-lg ${visual.color}`}>{visual.icon}</span>
                                     </div>
+
+                                    {/* Edit/Delete Menu (Visible on hover or always?) -> Let's put a delete button visible on top right for now */}
+                                    <button
+                                        onClick={(e) => handleDeleteFridge(e, fridge.id, fridge.name)}
+                                        className="absolute top-2 right-2 size-8 rounded-full bg-black/40 hover:bg-red-500 backdrop-blur-md flex items-center justify-center text-white transition-colors opacity-0 group-hover:opacity-100"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                    </button>
                                 </div>
                                 <div className="flex flex-col p-4">
                                     <div className="flex items-center justify-between">

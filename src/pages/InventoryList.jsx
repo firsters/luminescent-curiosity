@@ -208,12 +208,6 @@ export default function InventoryList() {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     if(confirm(`${item.name}을(를) 소비 처리하시겠습니까?`)) {
-                                        deleteItem(item.id); // For now, deleteItem actually deletes. We need consumeItem from context. 
-                                        // Wait, I didn't verify if I destructured consumeItem in this component.
-                                        // Let's assume I will. Or I can use deleteItem as "Remove" if consume is separate.
-                                        // The user request was "Consume logic".
-                                        
-                                        // Update: I'll use consumeItem from context.
                                         consumeItem(item.id);
                                     }
                                 }}
@@ -305,6 +299,16 @@ export default function InventoryList() {
 
                     {/* Actions */}
                     <div className="flex gap-3 mt-2">
+                         <button
+                            onClick={() => {
+                                // Navigate to edit
+                                navigate('/add', { state: { editItem: selectedItem } });
+                            }}
+                            className="flex-1 py-4 rounded-2xl bg-gray-100 dark:bg-white/10 text-[#0e1b12] dark:text-white font-bold transition-colors flex items-center justify-center gap-1"
+                        >
+                             <span className="material-symbols-outlined text-[18px]">edit</span>
+                            수정
+                        </button>
                         <button 
                             onClick={() => {
                                 if(confirm('삭제하시겠습니까? (소비되지 않음)')) {

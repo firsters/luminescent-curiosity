@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy, getDocs } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 const FridgeContext = createContext();
@@ -69,8 +69,19 @@ export function FridgeProvider({ children }) {
   }
 
   async function deleteFridge(id) {
-    // TODO: Verify if inventory items exist in this fridge before deleting?
-    // For now, simple delete
+    // Check if any available items exist in this fridge
+    const q = query(
+      collection(db, 'inventory'),
+      where('fridgeId', '==', id),
+      where('status', '==', 'available')
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      throw new Error("Cannot delete fridge with existing items. Please move or consume them first.");
+    }
+
     return deleteDoc(doc(db, 'fridges', id));
   }
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
 import { fetchProductFromBarcode } from "../lib/openFoodFacts";
@@ -9,8 +9,13 @@ import { compressImage } from "../lib/imageCompression";
 
 export default function AddItem() {
   const navigate = useNavigate();
-  const { addItem } = useInventory();
+  const location = useLocation();
+  const { addItem, updateItem } = useInventory();
   const { fridges } = useFridge();
+
+  // Check if we are in Edit Mode
+  const editModeItem = location.state?.editItem;
+  const isEditMode = !!editModeItem;
 
   // Constants
   const DEFAULT_CATEGORIES = [
@@ -43,17 +48,61 @@ export default function AddItem() {
     barcode: "",
   });
 
-  // Set default fridge when fridges load
-  useEffect(() => {
-    if (fridges.length > 0 && !formData.fridgeId) {
-      setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
-    }
-  }, [fridges]);
-
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+
+  // Helper to safely parse date from various formats (Date, String, Timestamp-like)
+  const safeDateToIso = (dateInput) => {
+      try {
+          if (!dateInput) return new Date().toISOString().split("T")[0];
+
+          let dateObj;
+          if (dateInput instanceof Date) {
+              dateObj = dateInput;
+          } else if (dateInput?.toDate && typeof dateInput.toDate === 'function') {
+              // Handle Firestore Timestamp if somehow passed directly
+              dateObj = dateInput.toDate();
+          } else {
+              // String or number
+              dateObj = new Date(dateInput);
+          }
+
+          if (isNaN(dateObj.getTime())) {
+               // Fallback if invalid
+               return new Date().toISOString().split("T")[0];
+          }
+
+          return dateObj.toISOString().split("T")[0];
+      } catch (e) {
+          console.error("Date parsing error", e);
+          return new Date().toISOString().split("T")[0];
+      }
+  };
+
+  // Initialize form with Edit Data if available
+  useEffect(() => {
+    if (isEditMode) {
+      setFormData({
+        name: editModeItem.name || "",
+        foodCategory: editModeItem.foodCategory || "fruit",
+        fridgeId: editModeItem.fridgeId || "",
+        quantity: editModeItem.quantity || 1,
+        unit: editModeItem.unit || "개",
+        expiryDate: safeDateToIso(editModeItem.expiryDate),
+        buyDate: safeDateToIso(editModeItem.addedDate),
+        barcode: editModeItem.barcode || "",
+      });
+      if (editModeItem.photoUrl) {
+        setImagePreview(editModeItem.photoUrl);
+      }
+    } else if (fridges.length > 0 && !formData.fridgeId) {
+       // Set default fridge only if NOT editing and no fridge selected
+       setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
+    }
+  }, [isEditMode, editModeItem, fridges]);
+
 
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
@@ -159,15 +208,21 @@ export default function AddItem() {
     setLoading(true);
     try {
       let photoUrl = imagePreview;
+
+      // Upload new image if selected
       if (imageFile) {
         photoUrl = await uploadImage(imageFile);
-      } else if (imagePreview && !imagePreview.startsWith("http")) {
-        photoUrl = null;
+      } else if (imagePreview && !imagePreview.startsWith("http") && !imagePreview.startsWith("blob")) {
+         // If it's a base64 or something else not http/blob, treat as null (shouldn't happen with current logic usually)
+         // But if it's existing URL (starts with http), we keep it.
+         // If it is blob (preview), we should have imageFile.
+      } else if (!imagePreview) {
+          photoUrl = null;
       }
 
-      await addItem({
+      const itemData = {
         name: formData.name,
-        fridgeId: formData.fridgeId, // Save specific fridge ID
+        fridgeId: formData.fridgeId,
         foodCategory: formData.foodCategory,
         quantity: Number(formData.quantity),
         unit: formData.unit,
@@ -175,9 +230,15 @@ export default function AddItem() {
         addedDate: new Date(formData.buyDate),
         barcode: formData.barcode,
         photoUrl: photoUrl,
-      });
+      };
 
-      // Navigate back to the fridge we just added to
+      if (isEditMode) {
+          await updateItem(editModeItem.id, itemData);
+      } else {
+          await addItem(itemData);
+      }
+
+      // Navigate back to the fridge we just added/updated to
       const targetFridge = fridges.find((f) => f.id === formData.fridgeId);
       navigate(
         `/inventory?fridgeId=${formData.fridgeId}&fridgeName=${
@@ -185,7 +246,7 @@ export default function AddItem() {
         }`
       );
     } catch (error) {
-      alert("적재 중 오류 발생: " + error.message);
+      alert((isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -223,56 +284,58 @@ export default function AddItem() {
           <span className="material-symbols-outlined nav-icon">close</span>
         </button>
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-center">
-          음식 추가
+          {isEditMode ? "음식 수정" : "음식 추가"}
         </h2>
         <div className="size-10"></div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-4">
-        {/* Input Methods Grid */}
-        <div className="grid grid-cols-3 gap-2 p-4">
-          <button
-            onClick={() => cameraInputRef.current?.click()}
-            className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
-          >
-            <div className="rounded-full bg-primary/10 p-3 text-primary">
-              <span className="material-symbols-outlined text-[28px]">
-                photo_camera
-              </span>
-            </div>
-            <span className="text-sm font-bold leading-tight whitespace-nowrap">
-              사진 촬영
-            </span>
-          </button>
+        {/* Input Methods Grid - Only show in Add Mode */}
+        {!isEditMode && (
+            <div className="grid grid-cols-3 gap-2 p-4">
+            <button
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+            >
+                <div className="rounded-full bg-primary/10 p-3 text-primary">
+                <span className="material-symbols-outlined text-[28px]">
+                    photo_camera
+                </span>
+                </div>
+                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+                사진 촬영
+                </span>
+            </button>
 
-          <button
-            onClick={() => setScanning(true)}
-            className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
-          >
-            <div className="rounded-full bg-primary/10 p-3 text-primary">
-              <span className="material-symbols-outlined text-[28px]">
-                qr_code_scanner
-              </span>
-            </div>
-            <span className="text-sm font-bold leading-tight whitespace-nowrap">
-              바코드 스캔
-            </span>
-          </button>
+            <button
+                onClick={() => setScanning(true)}
+                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+            >
+                <div className="rounded-full bg-primary/10 p-3 text-primary">
+                <span className="material-symbols-outlined text-[28px]">
+                    qr_code_scanner
+                </span>
+                </div>
+                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+                바코드 스캔
+                </span>
+            </button>
 
-          <button
-            onClick={() => galleryInputRef.current?.click()}
-            className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
-          >
-            <div className="rounded-full bg-primary/10 p-3 text-primary">
-              <span className="material-symbols-outlined text-[28px]">
-                photo_library
-              </span>
+            <button
+                onClick={() => galleryInputRef.current?.click()}
+                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+            >
+                <div className="rounded-full bg-primary/10 p-3 text-primary">
+                <span className="material-symbols-outlined text-[28px]">
+                    photo_library
+                </span>
+                </div>
+                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+                앨범 선택
+                </span>
+            </button>
             </div>
-            <span className="text-sm font-bold leading-tight whitespace-nowrap">
-              앨범 선택
-            </span>
-          </button>
-        </div>
+        )}
 
         {/* Hidden File Inputs */}
         <input
@@ -308,6 +371,19 @@ export default function AddItem() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* If Edit mode and no image, show option to add one */}
+        {isEditMode && !imagePreview && (
+            <div className="px-4 pb-2">
+                 <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="w-full h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center text-gray-500 gap-1 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                 >
+                     <span className="material-symbols-outlined">add_a_photo</span>
+                     <span className="text-xs">사진 추가</span>
+                 </button>
+            </div>
         )}
 
         {/* Form Fields */}
@@ -509,11 +585,11 @@ export default function AddItem() {
             className="flex-[2] rounded-xl bg-primary py-4 text-center font-bold text-background-dark text-lg shadow-lg shadow-primary/20 active:scale-[0.99] transition-transform flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span>저장 중...</span>
+              <span>{isEditMode ? "저장 중..." : "저장 중..."}</span>
             ) : (
               <>
                 <span className="material-symbols-outlined">kitchen</span>
-                냉장고에 넣기
+                {isEditMode ? "수정 완료" : "냉장고에 넣기"}
               </>
             )}
           </button>

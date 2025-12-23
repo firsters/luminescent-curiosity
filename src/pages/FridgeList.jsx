@@ -85,7 +85,8 @@ export default function FridgeList() {
   const expiringCount = items.filter(i => {
       if (!i.expiryDate) return false;
       const days = Math.ceil((i.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
-      return days <= 3;
+      // Expiring soon means 0 <= days <= 3. (Expired is days < 0)
+      return days >= 0 && days <= 3;
   }).length;
 
   // Fridge Type Visuals

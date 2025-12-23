@@ -60,14 +60,16 @@ export default function FridgeList() {
       }
   };
 
-  const handleDeleteFridge = async (e, id, name) => {
-    e.preventDefault(); // Prevent Link navigation
-    e.stopPropagation();
+  const handleDeleteFridge = async (e) => {
+    // If called from button, it's an event
+    if (e && e.preventDefault) e.preventDefault();
 
-    if (!confirm(`'${name}' 냉장고를 삭제하시겠습니까?\n주의: 보관 중인 모든 음식이 함께 삭제됩니다.`)) return;
+    // Use editingId and fridgeName from state (since this is called from Modal now)
+    if (!confirm(`'${fridgeName}' 냉장고를 삭제하시겠습니까?\n주의: 보관 중인 모든 음식이 함께 삭제됩니다.`)) return;
 
     try {
-        await deleteFridge(id);
+        await deleteFridge(editingId);
+        setIsModalOpen(false); // Close modal on success
     } catch (error) {
         alert('냉장고 삭제 실패: ' + error.message);
     }
@@ -168,23 +170,13 @@ export default function FridgeList() {
                                         <span className={`material-symbols-outlined text-lg ${visual.color}`}>{visual.icon}</span>
                                     </div>
 
-                                    {/* Delete Button (Only in Edit Mode) */}
+                                    {/* Edit Indicator Overlay (Only in Edit Mode) */}
                                     {isEditMode && (
-                                        <>
-                                            <button
-                                                onClick={(e) => handleDeleteFridge(e, fridge.id, fridge.name)}
-                                                className="absolute top-2 right-2 size-10 rounded-full bg-red-500 flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200"
-                                            >
-                                                <span className="material-symbols-outlined text-xl">delete</span>
-                                            </button>
-
-                                            {/* Edit Indicator Overlay */}
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-                                                <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-white">edit</span>
-                                                </div>
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                                            <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-white">edit</span>
                                             </div>
-                                        </>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex flex-col p-4">
@@ -271,9 +263,21 @@ export default function FridgeList() {
                              ))}
                           </div>
                       </div>
-                      <div className="flex gap-2 mt-2">
-                          <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300">취소</button>
-                          <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20">{modalMode === 'add' ? '추가하기' : '저장하기'}</button>
+                      <div className="flex flex-col gap-2 mt-2">
+                          <div className="flex gap-2">
+                              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300">취소</button>
+                              <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20">{modalMode === 'add' ? '추가하기' : '저장하기'}</button>
+                          </div>
+
+                          {modalMode === 'edit' && (
+                              <button
+                                type="button"
+                                onClick={handleDeleteFridge}
+                                className="w-full py-3 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-bold mt-2 hover:bg-red-100 dark:hover:bg-red-900/20 active:scale-95 transition-all"
+                              >
+                                  삭제하기
+                              </button>
+                          )}
                       </div>
                   </form>
               </div>

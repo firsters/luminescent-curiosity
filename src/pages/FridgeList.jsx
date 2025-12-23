@@ -6,29 +6,57 @@ import { useInventory } from '../context/InventoryContext';
 
 export default function FridgeList() {
   const { logout } = useAuth();
-  const { fridges, loading: fridgeLoading, addFridge, deleteFridge } = useFridge();
+  const { fridges, loading: fridgeLoading, addFridge, deleteFridge, updateFridge } = useFridge();
   const { items } = useInventory(); // To calculate stats
 
-  // Local state for "Add Fridge" modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newFridgeName, setNewFridgeName] = useState('');
-  const [newFridgeType, setNewFridgeType] = useState('fridge'); // fridge, freezer, pantry, kimchi
+  // Edit Mode state
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const handleAddFridge = async (e) => {
+  // Local state for Fridge modal (Add/Edit)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [editingId, setEditingId] = useState(null);
+  const [fridgeName, setFridgeName] = useState('');
+  const [fridgeType, setFridgeType] = useState('fridge'); // fridge, freezer, pantry, kimchi
+
+  const handleOpenAddModal = () => {
+    setModalMode('add');
+    setEditingId(null);
+    setFridgeName('');
+    setFridgeType('fridge');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (fridge) => {
+    setModalMode('edit');
+    setEditingId(fridge.id);
+    setFridgeName(fridge.name);
+    setFridgeType(fridge.type);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveFridge = async (e) => {
       e.preventDefault();
-      if (!newFridgeName.trim()) return;
+      if (!fridgeName.trim()) return;
 
       try {
-          await addFridge({
-              name: newFridgeName,
-              type: newFridgeType,
-              icon: 'kitchen' // Default icon logic can be improved
-          });
+          if (modalMode === 'add') {
+              await addFridge({
+                  name: fridgeName,
+                  type: fridgeType,
+                  icon: 'kitchen' // Default icon logic can be improved
+              });
+          } else {
+              await updateFridge(editingId, {
+                  name: fridgeName,
+                  type: fridgeType
+              });
+          }
           setIsModalOpen(false);
-          setNewFridgeName('');
-          setNewFridgeType('fridge');
+          setFridgeName('');
+          setFridgeType('fridge');
       } catch (error) {
-          alert('Failed to add fridge: ' + error.message);
+          alert('Failed to save fridge: ' + error.message);
       }
   };
 
@@ -103,7 +131,19 @@ export default function FridgeList() {
 
         {/* Fridge Grid */}
         <div>
-            <h2 className="mb-4 text-base font-bold text-text-main-light dark:text-text-main-dark">보관 장소 목록</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-text-main-light dark:text-text-main-dark">보관 장소 목록</h2>
+                <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${
+                        isEditMode
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                    }`}
+                >
+                    {isEditMode ? '완료' : '편집'}
+                </button>
+            </div>
             
             {fridgeLoading ? (
                 <div className="text-center py-10">Loading...</div>
@@ -114,11 +154,11 @@ export default function FridgeList() {
                         const visual = getFridgeVisual(fridge.type);
                         const count = getItemCount(fridge.id); // TODO: Implement real count later
                         
-                        return (
-                            <Link key={fridge.id} to={`/inventory?fridgeId=${fridge.id}&fridgeName=${fridge.name}`} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-all hover:shadow-md active:scale-95">
+                        const CardContent = (
+                            <>
                                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                                     {/* Visual with Unsplash Placeholder based on type? Or just generic */}
-                                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" 
+                                    <div className={`absolute inset-0 bg-cover bg-center transition-transform duration-500 ${!isEditMode && 'group-hover:scale-105'}`}
                                         style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1584269668383-a7732d847844?q=80&w=800&auto=format&fit=crop")' }}>
                                     </div>
                                     <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
@@ -128,13 +168,24 @@ export default function FridgeList() {
                                         <span className={`material-symbols-outlined text-lg ${visual.color}`}>{visual.icon}</span>
                                     </div>
 
-                                    {/* Edit/Delete Menu (Visible on hover or always?) -> Let's put a delete button visible on top right for now */}
-                                    <button
-                                        onClick={(e) => handleDeleteFridge(e, fridge.id, fridge.name)}
-                                        className="absolute top-2 right-2 size-8 rounded-full bg-black/40 hover:bg-red-500 backdrop-blur-md flex items-center justify-center text-white transition-colors opacity-0 group-hover:opacity-100"
-                                    >
-                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                    </button>
+                                    {/* Delete Button (Only in Edit Mode) */}
+                                    {isEditMode && (
+                                        <>
+                                            <button
+                                                onClick={(e) => handleDeleteFridge(e, fridge.id, fridge.name)}
+                                                className="absolute top-2 right-2 size-10 rounded-full bg-red-500 flex items-center justify-center text-white shadow-md animate-in zoom-in duration-200"
+                                            >
+                                                <span className="material-symbols-outlined text-xl">delete</span>
+                                            </button>
+
+                                            {/* Edit Indicator Overlay */}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                                                <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-white">edit</span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                                 <div className="flex flex-col p-4">
                                     <div className="flex items-center justify-between">
@@ -144,13 +195,35 @@ export default function FridgeList() {
                                         {count}개 항목
                                     </div>
                                 </div>
+                            </>
+                        );
+
+                        if (isEditMode) {
+                            return (
+                                <div
+                                    key={fridge.id}
+                                    onClick={() => handleOpenEditModal(fridge)}
+                                    className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm ring-1 ring-primary/50 dark:ring-primary/50 transition-all active:scale-95 animate-pulse-once"
+                                >
+                                    {CardContent}
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <Link
+                                key={fridge.id}
+                                to={`/inventory?fridgeId=${fridge.id}&fridgeName=${fridge.name}`}
+                                className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-all hover:shadow-md active:scale-95"
+                            >
+                                {CardContent}
                             </Link>
                         );
                     })}
 
                     {/* Add New Fridge Button */}
                     <button 
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={handleOpenAddModal}
                         className="group flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 transition-all hover:bg-primary/10 active:scale-95 active:bg-primary/20 aspect-[4/5] min-h-[160px]"
                     >
                         <div className="flex size-12 items-center justify-center rounded-full bg-primary text-background-dark shadow-sm group-hover:scale-110 transition-transform">
@@ -164,17 +237,17 @@ export default function FridgeList() {
         </div>
       </main>
 
-      {/* Add Fridge Modal */}
+      {/* Add/Edit Fridge Modal */}
       {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
               <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl p-6 shadow-xl border border-white/10">
-                  <h3 className="text-lg font-bold mb-4">새 보관 장소 추가</h3>
-                  <form onSubmit={handleAddFridge} className="flex flex-col gap-4">
+                  <h3 className="text-lg font-bold mb-4">{modalMode === 'add' ? '새 보관 장소 추가' : '보관 장소 수정'}</h3>
+                  <form onSubmit={handleSaveFridge} className="flex flex-col gap-4">
                       <div>
                           <label className="block text-sm font-medium mb-1">이름</label>
                           <input 
-                            value={newFridgeName}
-                            onChange={e => setNewFridgeName(e.target.value)}
+                            value={fridgeName}
+                            onChange={e => setFridgeName(e.target.value)}
                             placeholder="예: 김치냉장고"
                             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent p-3 outline-none focus:border-primary"
                             autoFocus
@@ -187,8 +260,8 @@ export default function FridgeList() {
                                  <button
                                     key={type}
                                     type="button"
-                                    onClick={() => setNewFridgeType(type)}
-                                    className={`p-2 rounded-lg border text-sm font-medium transition-all ${newFridgeType === type ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+                                    onClick={() => setFridgeType(type)}
+                                    className={`p-2 rounded-lg border text-sm font-medium transition-all ${fridgeType === type ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
                                  >
                                      {type === 'fridge' && '냉장고'}
                                      {type === 'kimchi' && '김치냉장고'}
@@ -200,7 +273,7 @@ export default function FridgeList() {
                       </div>
                       <div className="flex gap-2 mt-2">
                           <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300">취소</button>
-                          <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20">추가하기</button>
+                          <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20">{modalMode === 'add' ? '추가하기' : '저장하기'}</button>
                       </div>
                   </form>
               </div>

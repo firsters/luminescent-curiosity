@@ -124,7 +124,7 @@ export default function InventoryList() {
   };
 
   const getDDayBadge = (days) => {
-      if (days < 0) return { text: `D+${Math.abs(days)}`, color: 'bg-gray-100 text-gray-500' };
+      if (days < 0) return { text: `만료됨 (D+${Math.abs(days)})`, color: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/50' };
       if (days <= 3) return { text: `D-${days}`, color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
       if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
       return { text: `${days}일 남음`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
@@ -220,6 +220,20 @@ export default function InventoryList() {
                     <p className="text-xs font-medium leading-normal">유통기한 임박</p>
                 </div>
             </div>
+
+            {/* New: Expired Card */}
+            {filteredItems.some(i => getDaysUntilExpiry(i.expiryDate) < 0) && (
+                <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/10 p-4 items-center text-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gray-500/5 dark:bg-white/5"></div>
+                    <p className="text-gray-600 dark:text-gray-300 tracking-tight text-3xl font-bold leading-tight">
+                        {filteredItems.filter(i => getDaysUntilExpiry(i.expiryDate) < 0).length}
+                    </p>
+                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                        <span className="material-symbols-outlined text-sm">error</span>
+                        <p className="text-xs font-medium leading-normal">만료됨</p>
+                    </div>
+                </div>
+            )}
         </div>
       </div>
 

@@ -130,6 +130,13 @@ export default function FridgeList() {
                 <span className="text-xs font-semibold text-red-600 dark:text-red-400">유통기한 임박</span>
                 <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiringCount}개</span>
             </Link>
+            <Link to="/inventory?filter=expired" className="flex min-w-[140px] flex-col rounded-2xl bg-gray-100 p-4 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">만료됨</span>
+                <span className="mt-1 text-2xl font-bold text-gray-600 dark:text-gray-400">{items.filter(i => {
+                    if (!i.expiryDate) return false;
+                    return Math.ceil((i.expiryDate - new Date()) / (1000 * 60 * 60 * 24)) < 0;
+                }).length}개</span>
+            </Link>
         </div>
 
         {/* Fridge Grid */}

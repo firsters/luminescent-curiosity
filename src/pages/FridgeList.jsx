@@ -1,16 +1,29 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useFridge } from '../context/FridgeContext';
 import { useInventory } from '../context/InventoryContext';
+import Toast from '../components/Toast';
 
 export default function FridgeList() {
   const { logout } = useAuth();
   const { fridges, loading: fridgeLoading, addFridge, deleteFridge, updateFridge } = useFridge();
   const { items } = useInventory(); // To calculate stats
+  const navigate = useNavigate();
 
   // Edit Mode state
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState({ visible: false, message: '' });
+
+  const showToast = (message) => {
+      setToast({ visible: true, message });
+  };
+
+  const hideToast = () => {
+      setToast(prev => ({ ...prev, visible: false }));
+  };
 
   // Local state for Fridge modal (Add/Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,6 +114,15 @@ export default function FridgeList() {
       return days < 0;
   }).length;
 
+  // Handle Card Click
+  const handleStatCardClick = (type, count) => {
+      if (count > 0) {
+          navigate(`/inventory?filter=${type}`);
+      } else {
+          showToast('해당하는 항목이 없습니다.');
+      }
+  };
+
   // Fridge Type Visuals
   const getFridgeVisual = (type) => {
       switch(type) {
@@ -134,18 +156,27 @@ export default function FridgeList() {
       <main className="flex flex-col gap-6 px-4 pt-4 pb-20">
         {/* Stats Row */}
         <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Link to="/inventory?filter=safe" className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform">
+            <button
+                onClick={() => handleStatCardClick('safe', safeCount)}
+                className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform text-left"
+            >
                 <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">소비기한 내</span>
                 <span className="mt-1 text-2xl font-bold text-text-main-light dark:text-text-main-dark">{safeCount}개</span>
-            </Link>
-            <Link to="/inventory?filter=expiring" className="flex min-w-[140px] flex-col rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 active:scale-95 transition-transform">
+            </button>
+            <button
+                onClick={() => handleStatCardClick('expiring', expiringCount)}
+                className="flex min-w-[140px] flex-col rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 active:scale-95 transition-transform text-left"
+            >
                 <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">소비기한 임박</span>
                 <span className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">{expiringCount}개</span>
-            </Link>
-             <Link to="/inventory?filter=expired" className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform">
+            </button>
+             <button
+                onClick={() => handleStatCardClick('expired', expiredCount)}
+                className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform text-left"
+            >
                 <span className="text-xs font-semibold text-red-600 dark:text-red-400">소비기한 만료</span>
                 <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiredCount}개</span>
-            </Link>
+            </button>
         </div>
 
         {/* Fridge Grid */}
@@ -299,6 +330,12 @@ export default function FridgeList() {
           </div>
       )}
 
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        isVisible={toast.visible}
+        onClose={hideToast}
+      />
     </>
   );
 }

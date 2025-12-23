@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useFridge } from '../context/FridgeContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function InventoryList() {
   const { items, loading, deleteItem, consumeItem } = useInventory();
+  const { fridges } = useFridge();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // URL Params
@@ -28,13 +30,18 @@ export default function InventoryList() {
   // Modal State
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Fridge ID to Name lookup
+  const fridgeNameMap = useMemo(() => {
+      return fridges.reduce((acc, fridge) => {
+          acc[fridge.id] = fridge.name;
+          return acc;
+      }, {});
+  }, [fridges]);
+
   // Determine current fridge title
   const getPageTitle = () => {
       const fridgeName = searchParams.get('fridgeName');
       if (fridgeName) return fridgeName;
-      if (activeFilter === 'expiring') return '소비기한 임박';
-      if (activeFilter === 'expired') return '소비기한 만료';
-      if (activeFilter === 'safe') return '소비기한 내';
       return '음식 목록';
   };
 
@@ -57,6 +64,28 @@ export default function InventoryList() {
       if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
       return { text: `소비기한 내`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
   };
+
+  // Stats for the 3 Cards
+  const safeCount = items.filter(i => {
+      if (i.status !== 'available') return false;
+      if (!i.expiryDate) return true;
+      const days = getDaysUntilExpiry(i.expiryDate);
+      return days > 3;
+  }).length;
+
+  const expiringCount = items.filter(i => {
+      if (i.status !== 'available') return false;
+      if (!i.expiryDate) return false;
+      const days = getDaysUntilExpiry(i.expiryDate);
+      return days >= 0 && days <= 3;
+  }).length;
+
+  const expiredCount = items.filter(i => {
+      if (i.status !== 'available') return false;
+      if (!i.expiryDate) return false;
+      const days = getDaysUntilExpiry(i.expiryDate);
+      return days < 0;
+  }).length;
 
   // Filter Logic
   const filteredItems = items.filter(item => {
@@ -87,8 +116,6 @@ export default function InventoryList() {
         } else {
              matchesCategory = true;
         }
-    } else if (activeFilter === 'fridge') {
-        // Placeholder for fridge type filtering if needed
     }
 
     return matchesSearch && matchesFridge && matchesCategory;
@@ -113,36 +140,49 @@ export default function InventoryList() {
         </div>
       </header>
 
-      {/* Stats Dashboard (Simplified) */}
+      {/* Filter Cards (Replaced Stats Dashboard) */}
       <div className="px-4 py-4">
-        <div className="flex flex-wrap gap-3">
-            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent dark:border-white/5 p-4 items-center text-center">
-                <p className="text-[#0e1b12] dark:text-white tracking-tight text-3xl font-bold leading-tight">
-                    {items.filter(i => i.status === 'available').length}
-                </p>
-                <div className="flex items-center gap-1 opacity-70">
-                    <span className="material-symbols-outlined text-sm">kitchen</span>
-                    <p className="text-xs font-medium leading-normal">보관 중</p>
-                </div>
-            </div>
-            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
-                <p className="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">
-                    {items.filter(i => {
-                        const days = getDaysUntilExpiry(i.expiryDate);
-                        return days >= 0 && days <= 3;
-                    }).length}
-                </p>
-                <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                    <span className="material-symbols-outlined text-sm">warning</span>
-                    <p className="text-xs font-medium leading-normal">소비기한 임박</p>
-                </div>
-            </div>
+        <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {/* Safe Card */}
+            <button
+                onClick={() => handleFilterChange('safe')}
+                className={`flex min-w-[100px] flex-1 flex-col rounded-2xl p-3 border transition-all active:scale-95 text-left
+                    ${activeFilter === 'safe'
+                        ? 'bg-primary/20 border-primary ring-1 ring-primary'
+                        : 'bg-primary/5 dark:bg-surface-dark border-primary/20 opacity-70 hover:opacity-100'}`}
+            >
+                <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">소비기한 내</span>
+                <span className="mt-1 text-xl font-bold text-text-main-light dark:text-text-main-dark">{safeCount}개</span>
+            </button>
+
+            {/* Expiring Card */}
+            <button
+                onClick={() => handleFilterChange('expiring')}
+                className={`flex min-w-[100px] flex-1 flex-col rounded-2xl p-3 border transition-all active:scale-95 text-left
+                    ${activeFilter === 'expiring'
+                        ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 ring-1 ring-orange-400'
+                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 opacity-70 hover:opacity-100'}`}
+            >
+                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">임박</span>
+                <span className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">{expiringCount}개</span>
+            </button>
+
+            {/* Expired Card */}
+            <button
+                onClick={() => handleFilterChange('expired')}
+                className={`flex min-w-[100px] flex-1 flex-col rounded-2xl p-3 border transition-all active:scale-95 text-left
+                    ${activeFilter === 'expired'
+                        ? 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700 ring-1 ring-red-400'
+                        : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 opacity-70 hover:opacity-100'}`}
+            >
+                <span className="text-xs font-semibold text-red-600 dark:text-red-400">만료</span>
+                <span className="mt-1 text-xl font-bold text-red-600 dark:text-red-400">{expiredCount}개</span>
+            </button>
         </div>
       </div>
 
       {/* SearchBar */}
-      <div className="px-4 pb-2">
+      <div className="px-4 pb-4">
         <label className="flex flex-col w-full">
             <div className="flex w-full items-center rounded-xl h-12 bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent focus-within:border-primary transition-colors overflow-hidden">
                 <div className="text-primary dark:text-primary/80 flex items-center justify-center pl-4 pr-2">
@@ -158,34 +198,8 @@ export default function InventoryList() {
         </label>
       </div>
 
-      {/* Chips (Filter) */}
-      <div className="flex gap-2 px-4 py-2 overflow-x-auto hide-scrollbar pb-4">
-        {[
-            { id: 'all', label: '전체', icon: 'check' },
-            { id: 'safe', label: '소비기한 내', icon: 'verified' },
-            { id: 'expiring', label: '임박', icon: 'hourglass_bottom' },
-            { id: 'expired', label: '만료', icon: 'error' },
-        ].map(filter => (
-            <button 
-                key={filter.id}
-                onClick={() => handleFilterChange(filter.id)}
-                className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-3 pr-4 active:scale-95 transition-all
-                    ${activeFilter === filter.id 
-                        ? 'bg-[#19e65e] dark:bg-[#19e65e] shadow-md shadow-[#19e65e]/20' 
-                        : 'bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-white/10'}`}
-            >
-                <span className={`material-symbols-outlined text-sm ${activeFilter === filter.id ? 'text-[#0e1b12]' : 'text-gray-500'}`}>
-                    {filter.icon}
-                </span>
-                <p className={`text-sm font-medium leading-normal ${activeFilter === filter.id ? 'text-[#0e1b12] font-bold' : 'text-gray-600 dark:text-gray-300'}`}>
-                    {filter.label}
-                </p>
-            </button>
-        ))}
-      </div>
-
       {/* List Section */}
-      <div className="px-4 mt-2 mb-20">
+      <div className="px-4 mt-0 mb-20">
         <div className="flex flex-col gap-3">
             {filteredItems.map(item => {
                 const days = getDaysUntilExpiry(item.expiryDate);
@@ -195,7 +209,7 @@ export default function InventoryList() {
                     <div 
                         key={item.id} 
                         onClick={() => setSelectedItem(item)}
-                        className="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent hover:shadow-md active:scale-[0.99] transition-all cursor-pointer"
+                        className="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent hover:shadow-md active:scale-[0.99] transition-all cursor-pointer relative overflow-hidden"
                     >
                         <div className="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
                             {item.photoUrl ? (
@@ -203,10 +217,14 @@ export default function InventoryList() {
                             ) : (
                                 <span className="material-symbols-outlined text-gray-400">image</span>
                             )}
-                            {/* Color bar indicator based on expiry? Or category? Let's use logic later */}
                             <div className={`absolute bottom-0 w-full h-1 ${days <= 3 ? 'bg-red-500' : 'bg-primary'}`}></div>
                         </div>
                         <div className="flex flex-1 flex-col justify-center">
+                            {/* Fridge Name Badge */}
+                            <span className="text-[10px] font-bold text-text-sub-light dark:text-text-sub-dark bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded-md self-start mb-1">
+                                {fridgeNameMap[item.fridgeId] || '미지정'}
+                            </span>
+
                             <p className="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">{item.name}</p>
                             <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">
                                 {item.category} • {item.quantity}{item.unit}
@@ -315,6 +333,13 @@ export default function InventoryList() {
                             <p className="text-xs text-text-sub-light mb-1">등록일</p>
                             <p className="font-bold text-[#0e1b12] dark:text-white">
                                 {selectedItem.addedDate ? new Date(selectedItem.addedDate).toISOString().split('T')[0] : '-'}
+                            </p>
+                        </div>
+                         {/* Added Fridge Name Info */}
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 col-span-2">
+                            <p className="text-xs text-text-sub-light mb-1">보관 장소</p>
+                            <p className="font-bold text-[#0e1b12] dark:text-white">
+                                {fridgeNameMap[selectedItem.fridgeId] || '미지정'}
                             </p>
                         </div>
                     </div>

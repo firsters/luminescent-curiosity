@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy, writeBatch } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 export const InventoryContext = createContext();
@@ -81,13 +81,53 @@ export function InventoryProvider({ children }) {
       });
   }
 
+  async function removeItemsByFilter({ includeAvailable, includeExpired, includeConsumed }) {
+      if (!familyId) return;
+
+      const batch = writeBatch(db);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Determine items to delete based on the agreed logic
+      const itemsToDelete = items.filter(item => {
+          const expiryDate = item.expiryDate ? new Date(item.expiryDate) : null;
+          const isExpired = expiryDate && expiryDate < today;
+
+          // 1. Available (Not Expired)
+          if (includeAvailable && item.status === 'available' && !isExpired) {
+              return true;
+          }
+          // 2. Expired (Available but expired)
+          if (includeExpired && item.status === 'available' && isExpired) {
+              return true;
+          }
+          // 3. Consumed (Status is consumed)
+          if (includeConsumed && item.status === 'consumed') {
+              return true;
+          }
+
+          return false;
+      });
+
+      if (itemsToDelete.length === 0) return 0;
+
+      itemsToDelete.forEach(item => {
+          const itemRef = doc(db, 'inventory', item.id);
+          batch.delete(itemRef);
+      });
+
+      await batch.commit();
+      return itemsToDelete.length;
+  }
+
   const value = {
     items,
     loading,
     addItem,
     deleteItem,
     updateItem,
-    consumeItem
+    consumeItem,
+    removeItemsByFilter
   };
 
   return (

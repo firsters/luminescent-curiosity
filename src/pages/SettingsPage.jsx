@@ -20,6 +20,26 @@ export default function SettingsPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
 
+  // Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+  };
+
   const handleJoinFamily = async () => {
       if (!inviteCode.trim()) return;
       
@@ -261,6 +281,39 @@ export default function SettingsPage() {
             </div>
         </section>
 
+        {/* App Info / Install */}
+        <section className="mt-6">
+            <h3 className="px-2 pb-2 text-sm font-bold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider">앱 정보</h3>
+            <div className="overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm divide-y divide-gray-100 dark:divide-gray-800">
+                {deferredPrompt && (
+                    <button onClick={handleInstallClick} className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                                <span className="material-symbols-outlined">download</span>
+                            </div>
+                            <div className="flex flex-col items-start">
+                                <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">앱 설치하기</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">홈 화면에 추가하여 앱처럼 사용하세요</span>
+                            </div>
+                        </div>
+                        <span className="material-symbols-outlined text-gray-400">chevron_right</span>
+                    </button>
+                )}
+
+                <div className="p-4 flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            <span className="material-symbols-outlined">info</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">현재 버전</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">v{__APP_VERSION__} ({__BUILD_DATE__})</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         {/* Footer Actions */}
         <section className="mt-8 mb-8">
             <div className="flex flex-col gap-3">
@@ -278,7 +331,6 @@ export default function SettingsPage() {
                     로그아웃
                 </button>
                 <div className="text-center mt-2 flex flex-col gap-1">
-                    <span className="text-xs text-gray-400">버전 {__APP_VERSION__} ({__BUILD_DATE__})</span>
                     <span className="text-[10px] text-gray-300">날짜가 변경되지 않으면 최신 버전입니다.</span>
                 </div>
             </div>

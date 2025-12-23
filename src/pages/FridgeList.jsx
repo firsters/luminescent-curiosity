@@ -122,17 +122,23 @@ export default function FridgeList() {
       <main className="flex flex-col gap-6 px-4 pt-4 pb-20">
         {/* Stats Row */}
         <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Link to="/inventory" className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform">
-                <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">전체 보관</span>
-                <span className="mt-1 text-2xl font-bold text-text-main-light dark:text-text-main-dark">{items.filter(i => i.status === 'available').length}개</span>
+            <Link to="/inventory" className="flex min-w-[140px] flex-col rounded-2xl bg-green-50 p-4 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-green-600 dark:text-green-400">안전 (여유)</span>
+                <span className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">{items.filter(i => {
+                    if (i.status !== 'available') return false;
+                    if (!i.expiryDate) return true; // No expiry considered safe
+                    const days = Math.ceil((i.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+                    return days > 3;
+                }).length}개</span>
             </Link>
-            <Link to="/inventory?filter=expiring" className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform">
-                <span className="text-xs font-semibold text-red-600 dark:text-red-400">유통기한 임박</span>
-                <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiringCount}개</span>
+            <Link to="/inventory?filter=expiring" className="flex min-w-[140px] flex-col rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">유통기한 임박</span>
+                <span className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">{expiringCount}개</span>
             </Link>
-            <Link to="/inventory?filter=expired" className="flex min-w-[140px] flex-col rounded-2xl bg-gray-100 p-4 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 active:scale-95 transition-transform">
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">만료됨</span>
-                <span className="mt-1 text-2xl font-bold text-gray-600 dark:text-gray-400">{items.filter(i => {
+            <Link to="/inventory?filter=expired" className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-red-600 dark:text-red-400">만료됨</span>
+                <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{items.filter(i => {
+                    if (i.status !== 'available') return false;
                     if (!i.expiryDate) return false;
                     return Math.ceil((i.expiryDate - new Date()) / (1000 * 60 * 60 * 24)) < 0;
                 }).length}개</span>

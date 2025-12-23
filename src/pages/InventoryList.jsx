@@ -125,9 +125,9 @@ export default function InventoryList() {
 
   const getDDayBadge = (days) => {
       if (days < 0) return { text: `만료됨 (D+${Math.abs(days)})`, color: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/50' };
-      if (days <= 3) return { text: `D-${days}`, color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
-      if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
-      return { text: `${days}일 남음`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
+      if (days <= 3) return { text: `D-${days}`, color: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-900/50' };
+      if (days <= 7) return { text: `D-${days}`, color: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' };
+      return { text: `${days}일 남음`, color: 'text-[#0e1b12] dark:text-white font-bold' };
   };
 
   const navigate = useNavigate();
@@ -198,37 +198,44 @@ export default function InventoryList() {
       {/* Stats Dashboard (Simplified) */}
       <div className="px-4 py-4">
         <div className="flex flex-wrap gap-3">
-            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent dark:border-white/5 p-4 items-center text-center">
-                <p className="text-[#0e1b12] dark:text-white tracking-tight text-3xl font-bold leading-tight">
-                    {filteredItems.length}
+            {/* Safe (Green) */}
+            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-green-100 dark:border-green-900/30 p-4 items-center text-center">
+                <p className="text-green-600 dark:text-green-400 tracking-tight text-3xl font-bold leading-tight">
+                    {filteredItems.filter(i => {
+                        if (!i.expiryDate) return true;
+                        const d = getDaysUntilExpiry(i.expiryDate);
+                        return d > 3;
+                    }).length}
                 </p>
-                <div className="flex items-center gap-1 opacity-70">
-                    <span className="material-symbols-outlined text-sm">kitchen</span>
-                    <p className="text-xs font-medium leading-normal">보관 중</p>
+                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    <p className="text-xs font-medium leading-normal">안전 (여유)</p>
                 </div>
             </div>
-            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
-                <p className="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">
+
+            {/* Expiring (Orange) */}
+            <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-orange-100 dark:border-orange-900/30 p-4 items-center text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-orange-500/5 dark:bg-orange-500/10"></div>
+                <p className="text-orange-600 dark:text-orange-400 tracking-tight text-3xl font-bold leading-tight">
                     {filteredItems.filter(i => {
                         const d = getDaysUntilExpiry(i.expiryDate);
                         return d >= 0 && d <= 3;
                     }).length}
                 </p>
-                <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
                     <span className="material-symbols-outlined text-sm">warning</span>
                     <p className="text-xs font-medium leading-normal">유통기한 임박</p>
                 </div>
             </div>
 
-            {/* New: Expired Card */}
+            {/* Expired (Red) */}
             {filteredItems.some(i => getDaysUntilExpiry(i.expiryDate) < 0) && (
-                <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-white/10 p-4 items-center text-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gray-500/5 dark:bg-white/5"></div>
-                    <p className="text-gray-600 dark:text-gray-300 tracking-tight text-3xl font-bold leading-tight">
+                <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
+                    <p className="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">
                         {filteredItems.filter(i => getDaysUntilExpiry(i.expiryDate) < 0).length}
                     </p>
-                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                         <span className="material-symbols-outlined text-sm">error</span>
                         <p className="text-xs font-medium leading-normal">만료됨</p>
                     </div>

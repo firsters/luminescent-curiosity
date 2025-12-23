@@ -24,17 +24,62 @@
 
 ### 3.2 홈 / 냉장고 목록 (Fridge List)
 **경로:** `/`
-- **대시보드 통계:**
-  - 전체 보관 아이템 수 표시 (클릭 시 전체 목록 이동).
-  - 유통기한 임박 아이템 수 표시 (3일 이내, 클릭 시 필터링된 목록 이동).
-- **냉장고 그리드 뷰:**
-  - 등록된 보관 장소(냉장고, 냉동고, 김치냉장고, 팬트리 등)를 카드 형태로 표시.
-  - 각 카드에 보관 중인 아이템 개수 및 대표 이미지(Unsplash/기본 아이콘) 표시.
+
+#### 3.2.1 레이아웃 구조 (Layout Structure)
+- **Header (상단바):**
+  - **좌측:** 메뉴 아이콘 (현재 기능 없음, UI 장식용).
+  - **중앙:** 타이틀 "나의 냉장고".
+  - **우측:** 알림 아이콘, 로그아웃 버튼.
+  - **스타일:** `sticky top-0`, 배경 블러 처리(`backdrop-blur-md`), 높이 약 64px.
+
+- **Stats Dashboard (통계 대시보드):**
+  - **위치:** 헤더 바로 아래.
+  - **구성:** 가로 스크롤 가능한 카드형 UI.
+  - **카드 1 (전체 보관):**
+    - 배경: Primary Color (Green) 틴트 (`bg-primary/10`).
+    - 데이터: `status === 'available'`인 모든 아이템 수.
+    - 클릭 동작: `/inventory` (전체 목록) 이동.
+  - **카드 2 (유통기한 임박):**
+    - 배경: Red Color 틴트 (`bg-red-50`).
+    - 데이터: 유통기한 3일 이내 아이템 수.
+    - 클릭 동작: `/inventory?filter=expiring` 이동.
+
+- **Fridge Grid (냉장고 목록 그리드):**
+  - **타이틀 영역:** "보관 장소 목록" 텍스트와 우측 "편집/완료" 토글 버튼.
+  - **그리드 레이아웃:** 반응형 그리드 (`grid-cols-2` ~ `grid-cols-5`).
+  - **냉장고 카드 (Fridge Card):**
+    - **비율:** 4:3 (이미지 영역) + 하단 텍스트 영역.
+    - **이미지:** Unsplash 랜덤 이미지 (키워드: food/kitchen) + 어두운 오버레이.
+    - **아이콘 배지:** 우측 하단에 냉장고 종류별 아이콘(kitchen, ac_unit 등) 표시.
+    - **텍스트:** 냉장고 이름 (Bold), 아이템 개수 (Small text).
+    - **인터랙션:**
+      - **일반 모드:** 클릭 시 해당 냉장고 상세 페이지(`/inventory?fridgeId=...`)로 이동.
+      - **편집 모드:** 클릭 시 '수정 팝업' 오픈. 카드 위에 '수정(연필)' 오버레이 표시.
+  - **추가 버튼 (Add Button):**
+    - 점선 테두리(`border-dashed`) 스타일의 카드.
+    - 중앙에 `+` 아이콘 및 "새 냉장고 추가" 텍스트.
+
+#### 3.2.2 주요 기능 및 인터랙션 (Key Interactions)
 - **편집 모드 (Edit Mode):**
-  - 상단 **'편집'** 버튼을 통해 진입.
-  - 마우스/터치 시 상세 이동 대신 **수정/삭제 팝업** 호출.
-  - **기능:** 냉장고 이름 변경, 종류 변경, 냉장고 삭제(소속된 음식 데이터 일괄 삭제 경고 포함).
-- **냉장고 추가:** '새 냉장고 추가' 버튼을 통해 새로운 보관 장소 생성.
+  - "편집" 버튼 클릭 시 활성화.
+  - **UI 변화:** "편집" 버튼 텍스트가 "완료"로 변경됨. 냉장고 카드 클릭 동작이 '상세 이동'에서 '수정 모달 오픈'으로 변경됨.
+  - **수정 모달 (Edit Modal):**
+    - **입력 필드:** 냉장고 이름 (Input), 종류 선택 (Button Group).
+    - **Action:** 저장(Primary), 취소(Secondary), **삭제(Danger)**.
+    - **삭제 로직:** 삭제 버튼 클릭 -> `confirm` 경고창 -> 확인 시 냉장고 및 소속 아이템 일괄 삭제.
+
+#### 3.2.3 스타일링 상세 (Styling Details)
+- **Color Palette:**
+  - **Primary:** Green (`#19e65e` 계열).
+  - **Danger:** Red (`#ef4444` 계열).
+  - **Background:** Light (`#ffffff`, `#f9fafb`) / Dark (`#000000`, `#111827`).
+- **Typography:**
+  - **Title:** `text-lg font-bold`.
+  - **Card Title:** `text-base font-bold`.
+  - **Count/Subtext:** `text-xs text-gray-500`.
+- **Components:**
+  - **Buttons:** Rounded-full (Icon buttons) or Rounded-xl (Action buttons).
+  - **Cards:** `rounded-2xl`, `shadow-sm`, `active:scale-95` (터치 피드백).
 
 ### 3.3 음식 목록 및 상세 (Inventory List)
 **경로:** `/inventory`

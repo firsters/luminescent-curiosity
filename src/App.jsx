@@ -12,6 +12,7 @@ import HistoryPage from './pages/HistoryPage';
 import SettingsPage from './pages/SettingsPage';
 import TestFridgeList from './pages/TestFridgeList';
 import { Link } from 'react-router-dom';
+import ReloadPrompt from './components/ReloadPrompt';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
@@ -25,6 +26,7 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   return (
     <BrowserRouter>
+      <ReloadPrompt />
       <AuthProvider>
         <FridgeProvider>
           <InventoryProvider>

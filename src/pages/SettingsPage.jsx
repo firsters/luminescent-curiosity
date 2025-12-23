@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function SettingsPage() {
 
   // Notification State
   const [expiryAlert, setExpiryAlert] = useState(true);
-  const [marketingAlert, setMarketingAlert] = useState(false);
+  // const [marketingAlert, setMarketingAlert] = useState(false);
   const [alertTiming, setAlertTiming] = useState('3'); // 7, 3, 1 days
   
   // Family State
@@ -68,8 +69,34 @@ export default function SettingsPage() {
               await logout();
               navigate('/login');
           } catch(e) {
+              console.error(e);
               alert('로그아웃 실패');
           }
+      }
+  };
+
+  // PWA Update Logic
+  const {
+      needRefresh: [needRefresh],
+      updateServiceWorker,
+  } = useRegisterSW();
+
+  const handleCheckUpdate = async () => {
+      if ('serviceWorker' in navigator) {
+          try {
+              const registration = await navigator.serviceWorker.ready;
+              await registration.update();
+              // If an update is found, 'needRefresh' should eventually become true
+              // or the ReloadPrompt will show up.
+              if (!needRefresh) {
+                  alert('현재 최신 버전을 사용 중입니다.');
+              }
+          } catch (e) {
+              console.error('Update check failed:', e);
+              alert('업데이트 확인에 실패했습니다.');
+          }
+      } else {
+          alert('이 브라우저는 PWA 업데이트를 지원하지 않습니다.');
       }
   };
 
@@ -237,11 +264,22 @@ export default function SettingsPage() {
         {/* Footer Actions */}
         <section className="mt-8 mb-8">
             <div className="flex flex-col gap-3">
+                {needRefresh ? (
+                    <button onClick={() => updateServiceWorker(true)} className="flex w-full items-center justify-center rounded-xl bg-primary text-white p-3.5 text-base font-medium shadow-sm active:scale-[0.99] hover:bg-green-600 transition-colors">
+                        새로운 버전 업데이트
+                    </button>
+                ) : (
+                    <button onClick={handleCheckUpdate} className="flex w-full items-center justify-center rounded-xl bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 p-3.5 text-base font-medium text-text-main-light dark:text-text-main-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm active:scale-[0.99]">
+                        업데이트 확인
+                    </button>
+                )}
+
                 <button onClick={handleLogout} className="flex w-full items-center justify-center rounded-xl bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 p-3.5 text-base font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors shadow-sm active:scale-[0.99]">
                     로그아웃
                 </button>
-                <div className="text-center mt-2">
+                <div className="text-center mt-2 flex flex-col gap-1">
                     <span className="text-xs text-gray-400">버전 {__APP_VERSION__} ({__BUILD_DATE__})</span>
+                    <span className="text-[10px] text-gray-300">날짜가 변경되지 않으면 최신 버전입니다.</span>
                 </div>
             </div>
         </section>

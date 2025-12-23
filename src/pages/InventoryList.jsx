@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useFridge } from '../context/FridgeContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function InventoryList() {
   const { items, loading, deleteItem, consumeItem } = useInventory();
+  const { fridges, updateFridge, deleteFridge } = useFridge(); // Access fridge actions
   const [searchParams] = useSearchParams();
   const fridgeFilter = searchParams.get('fridge'); // 'main', 'freezer', etc.
   
@@ -13,14 +15,67 @@ export default function InventoryList() {
   // Modal State
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Fridge Action Menu State
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFridgeName, setEditFridgeName] = useState('');
+  const [editFridgeType, setEditFridgeType] = useState('fridge');
+
+  const fridgeId = searchParams.get('fridgeId');
+  const fridgeNameParam = searchParams.get('fridgeName');
+
   // Determine current fridge title
   const getPageTitle = () => {
-      const fridgeName = searchParams.get('fridgeName');
-      if (fridgeName) return fridgeName;
+      // Prioritize local state if we just edited it, but for now URL param is single source of truth usually.
+      // However, if we update fridge name, we want UI to reflect immediately.
+      // Let's find the fridge in the context list if possible.
+      const currentFridge = fridges.find(f => f.id === fridgeId);
+      if (currentFridge) return currentFridge.name;
+
+      if (fridgeNameParam) return fridgeNameParam;
       return '음식 목록';
   };
 
-  const fridgeId = searchParams.get('fridgeId');
+  // Handlers for Fridge Actions
+  const handleOpenEditModal = () => {
+      setIsMenuOpen(false);
+      const currentFridge = fridges.find(f => f.id === fridgeId);
+      if (currentFridge) {
+          setEditFridgeName(currentFridge.name);
+          setEditFridgeType(currentFridge.type);
+          setIsEditModalOpen(true);
+      } else {
+          // Fallback if context not loaded or something
+          setEditFridgeName(fridgeNameParam || '');
+          setIsEditModalOpen(true);
+      }
+  };
+
+  const handleUpdateFridge = async (e) => {
+      e.preventDefault();
+      if (!editFridgeName.trim()) return;
+      try {
+          await updateFridge(fridgeId, {
+              name: editFridgeName,
+              type: editFridgeType
+          });
+          setIsEditModalOpen(false);
+          // Optional: Update URL to reflect new name? Or just rely on context.
+          // Since we use URL param for initial render, better update history state or just rely on Context for title.
+      } catch (error) {
+          alert('수정 실패: ' + error.message);
+      }
+  };
+
+  const handleDeleteFridge = async () => {
+      if (!confirm(`'${editFridgeName}' 냉장고를 삭제하시겠습니까?\n모든 음식이 함께 삭제됩니다.`)) return;
+      try {
+          await deleteFridge(fridgeId);
+          navigate('/'); // Go back home
+      } catch (error) {
+          alert('삭제 실패: ' + error.message);
+      }
+  };
 
   // Filter Logic
   const filteredItems = items.filter(item => {
@@ -87,10 +142,56 @@ export default function InventoryList() {
             <span className="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
         </button>
         <h2 className="text-[#0e1b12] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">{getPageTitle()}</h2>
-        <div className="flex w-10 items-center justify-end">
-             <button className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-[#0e1b12] dark:text-white">
+        <div className="relative flex w-10 items-center justify-end">
+             <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-[#0e1b12] dark:text-white"
+             >
                 <span className="material-symbols-outlined text-2xl">more_horiz</span>
             </button>
+
+            {/* Action Menu Dropdown */}
+            {isMenuOpen && (
+                <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}></div>
+                    <div className="absolute top-12 right-0 z-50 min-w-[160px] overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-xl border border-gray-100 dark:border-white/10 animate-in fade-in zoom-in duration-100 origin-top-right">
+                        {fridgeId ? (
+                            <div className="flex flex-col py-1">
+                                <button
+                                    onClick={handleOpenEditModal}
+                                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-main-light dark:text-text-main-dark hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                                    보관 장소 수정
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        setIsMenuOpen(false);
+                                        // Need to verify name for confirm dialog
+                                        const currentFridge = fridges.find(f => f.id === fridgeId);
+                                        const name = currentFridge ? currentFridge.name : fridgeNameParam;
+                                        if (!confirm(`'${name}' 냉장고를 삭제하시겠습니까?`)) return;
+                                        try {
+                                            await deleteFridge(fridgeId);
+                                            navigate('/');
+                                        } catch (e) {
+                                            alert(e.message);
+                                        }
+                                    }}
+                                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 active:bg-red-100 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                                    보관 장소 삭제
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="px-4 py-3 text-xs text-gray-500 text-center">
+                                관리 가능한 보관 장소가 아닙니다.
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
       </header>
 
@@ -235,6 +336,59 @@ export default function InventoryList() {
             <span className="material-symbols-outlined text-3xl">add</span>
         </Link>
       </div>
+
+      {/* Edit Fridge Modal (Reused UI from FridgeList) */}
+      {isEditModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+              <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl p-6 shadow-xl border border-white/10">
+                  <h3 className="text-lg font-bold mb-4">보관 장소 수정</h3>
+                  <form onSubmit={handleUpdateFridge} className="flex flex-col gap-4">
+                      <div>
+                          <label className="block text-sm font-medium mb-1">이름</label>
+                          <input
+                            value={editFridgeName}
+                            onChange={e => setEditFridgeName(e.target.value)}
+                            placeholder="예: 김치냉장고"
+                            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent p-3 outline-none focus:border-primary"
+                            autoFocus
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium mb-1">종류</label>
+                          <div className="grid grid-cols-2 gap-2">
+                             {['fridge', 'kimchi', 'freezer', 'pantry'].map(type => (
+                                 <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => setEditFridgeType(type)}
+                                    className={`p-2 rounded-lg border text-sm font-medium transition-all ${editFridgeType === type ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+                                 >
+                                     {type === 'fridge' && '냉장고'}
+                                     {type === 'kimchi' && '김치냉장고'}
+                                     {type === 'freezer' && '냉동고'}
+                                     {type === 'pantry' && '팬트리'}
+                                 </button>
+                             ))}
+                          </div>
+                      </div>
+                      <div className="flex flex-col gap-2 mt-2">
+                          <div className="flex gap-2">
+                              <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300">취소</button>
+                              <button type="submit" className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20">저장하기</button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleDeleteFridge}
+                            className="w-full py-3 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-bold mt-2 hover:bg-red-100 dark:hover:bg-red-900/20 active:scale-95 transition-all"
+                          >
+                                삭제하기
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
 
       {/* Item Detail Modal */}
       {selectedItem && (

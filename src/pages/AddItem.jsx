@@ -547,7 +547,7 @@ export default function AddItem() {
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-base font-bold">유통기한</label>
+              <label className="text-base font-bold">소비기한</label>
               <input
                 type="date"
                 name="expiryDate"

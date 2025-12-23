@@ -267,7 +267,7 @@ export default function SettingsPage() {
                             <span className="material-symbols-outlined">notifications_active</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-base font-semibold text-text-main-light dark:text-text-main-dark">유통기한 임박 알림</span>
+                            <span className="text-base font-semibold text-text-main-light dark:text-text-main-dark">소비기한 임박 알림</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">음식이 상하기 전에 미리 알려드려요</span>
                         </div>
                     </div>
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                               className="w-5 h-5 rounded text-primary focus:ring-primary"
                           />
                           <div className="flex flex-col">
-                              <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">보관 중 (유통기한 남음)</span>
+                              <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">보관 중 (소비기한 남음)</span>
                               <span className="text-xs text-gray-400">아직 상하지 않은 음식</span>
                           </div>
                       </label>
@@ -426,7 +426,7 @@ export default function SettingsPage() {
                           />
                           <div className="flex flex-col">
                               <span className="text-sm font-bold text-red-500">소비기한 만료</span>
-                              <span className="text-xs text-gray-400">유통기한이 지난 음식</span>
+                              <span className="text-xs text-gray-400">소비기한이 지난 음식</span>
                           </div>
                       </label>
                       <label className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-black/20 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">

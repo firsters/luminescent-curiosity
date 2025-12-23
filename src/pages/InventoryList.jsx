@@ -200,7 +200,7 @@ export default function InventoryList() {
         <div className="flex flex-wrap gap-3">
             <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-transparent dark:border-white/5 p-4 items-center text-center">
                 <p className="text-[#0e1b12] dark:text-white tracking-tight text-3xl font-bold leading-tight">
-                    {items.filter(i => i.status === 'available').length}
+                    {filteredItems.length}
                 </p>
                 <div className="flex items-center gap-1 opacity-70">
                     <span className="material-symbols-outlined text-sm">kitchen</span>
@@ -210,7 +210,7 @@ export default function InventoryList() {
             <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
                 <p className="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">
-                    {items.filter(i => getDaysUntilExpiry(i.expiryDate) <= 3).length}
+                    {filteredItems.filter(i => getDaysUntilExpiry(i.expiryDate) <= 3).length}
                 </p>
                 <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                     <span className="material-symbols-outlined text-sm">warning</span>
@@ -270,6 +270,9 @@ export default function InventoryList() {
                 const days = getDaysUntilExpiry(item.expiryDate);
                 const badge = getDDayBadge(days);
 
+                // Find fridge name if not in fridge context
+                const itemFridge = !fridgeId && fridges.find(f => f.id === item.fridgeId);
+
                 return (
                     <div 
                         key={item.id} 
@@ -290,6 +293,12 @@ export default function InventoryList() {
                             <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">
                                 {item.category} • {item.quantity}{item.unit}
                             </p>
+                            {/* Show Fridge Name if in "All Items" view */}
+                            {itemFridge && (
+                                <p className="text-primary text-[10px] font-bold mt-1 bg-primary/10 w-fit px-1.5 py-0.5 rounded-md">
+                                    {itemFridge.name}
+                                </p>
+                            )}
                         </div>
                         <div className="flex flex-col items-end gap-2">
                             {days <= 7 ? (

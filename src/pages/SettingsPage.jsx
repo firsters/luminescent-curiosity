@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useInventory } from '../context/InventoryContext';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { currentUser, logout, familyId, joinFamily } = useAuth();
+  const { removeItemsByFilter } = useInventory();
   
   // Theme State
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'system');
@@ -22,6 +24,15 @@ export default function SettingsPage() {
 
   // Install Prompt State
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  // Data Management Modal State
+  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+  const [deleteFilters, setDeleteFilters] = useState({
+      available: false,
+      expired: false,
+      consumed: false
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -61,6 +72,32 @@ export default function SettingsPage() {
           setJoinError('가족 그룹 변경 실패. 코드를 확인해주세요.');
       } finally {
           setIsJoining(false);
+      }
+  };
+
+  const handleBulkDelete = async () => {
+      if (!deleteFilters.available && !deleteFilters.expired && !deleteFilters.consumed) {
+          alert('삭제할 항목을 하나 이상 선택해주세요.');
+          return;
+      }
+
+      if(!confirm('선택한 항목들을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+
+      setIsDeleting(true);
+      try {
+          const count = await removeItemsByFilter({
+              includeAvailable: deleteFilters.available,
+              includeExpired: deleteFilters.expired,
+              includeConsumed: deleteFilters.consumed
+          });
+          alert(`${count}개의 항목이 삭제되었습니다.`);
+          setIsDataModalOpen(false);
+          setDeleteFilters({ available: false, expired: false, consumed: false });
+      } catch (error) {
+          console.error(error);
+          alert('삭제 실패: ' + error.message);
+      } finally {
+          setIsDeleting(false);
       }
   };
 
@@ -281,6 +318,28 @@ export default function SettingsPage() {
             </div>
         </section>
 
+        {/* Data Management */}
+        <section className="mt-6">
+            <h3 className="px-2 pb-2 text-sm font-bold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider">데이터 관리</h3>
+            <div className="overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm divide-y divide-gray-100 dark:divide-gray-800">
+                <button
+                    onClick={() => setIsDataModalOpen(true)}
+                    className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                            <span className="material-symbols-outlined">delete_sweep</span>
+                        </div>
+                        <div className="flex flex-col items-start">
+                            <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">전체 아이템 삭제</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">조건에 맞는 아이템을 일괄 삭제합니다</span>
+                        </div>
+                    </div>
+                    <span className="material-symbols-outlined text-gray-400">chevron_right</span>
+                </button>
+            </div>
+        </section>
+
         {/* App Info / Install */}
         <section className="mt-6">
             <h3 className="px-2 pb-2 text-sm font-bold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider">앱 정보</h3>
@@ -337,6 +396,72 @@ export default function SettingsPage() {
         </section>
 
       </main>
+
+      {/* Data Delete Modal */}
+      {isDataModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setIsDataModalOpen(false)}>
+              <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl p-6 shadow-xl border border-white/10" onClick={e => e.stopPropagation()}>
+                  <h3 className="text-lg font-bold mb-2 text-text-main-light dark:text-text-main-dark">전체 아이템 삭제</h3>
+                  <p className="text-sm text-gray-500 mb-6">삭제할 항목의 대상을 선택해주세요.</p>
+
+                  <div className="flex flex-col gap-3 mb-6">
+                      <label className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-black/20 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                          <input
+                              type="checkbox"
+                              checked={deleteFilters.available}
+                              onChange={e => setDeleteFilters({...deleteFilters, available: e.target.checked})}
+                              className="w-5 h-5 rounded text-primary focus:ring-primary"
+                          />
+                          <div className="flex flex-col">
+                              <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">보관 중 (유통기한 남음)</span>
+                              <span className="text-xs text-gray-400">아직 상하지 않은 음식</span>
+                          </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-black/20 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                          <input
+                              type="checkbox"
+                              checked={deleteFilters.expired}
+                              onChange={e => setDeleteFilters({...deleteFilters, expired: e.target.checked})}
+                              className="w-5 h-5 rounded text-primary focus:ring-primary"
+                          />
+                          <div className="flex flex-col">
+                              <span className="text-sm font-bold text-red-500">소비기한 만료</span>
+                              <span className="text-xs text-gray-400">유통기한이 지난 음식</span>
+                          </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-black/20 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                          <input
+                              type="checkbox"
+                              checked={deleteFilters.consumed}
+                              onChange={e => setDeleteFilters({...deleteFilters, consumed: e.target.checked})}
+                              className="w-5 h-5 rounded text-primary focus:ring-primary"
+                          />
+                          <div className="flex flex-col">
+                              <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">소비/삭제 기록</span>
+                              <span className="text-xs text-gray-400">이미 처리된 항목 (히스토리)</span>
+                          </div>
+                      </label>
+                  </div>
+
+                  <div className="flex gap-2">
+                      <button
+                          onClick={() => setIsDataModalOpen(false)}
+                          className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300"
+                      >
+                          취소
+                      </button>
+                      <button
+                          onClick={handleBulkDelete}
+                          disabled={isDeleting || (!deleteFilters.available && !deleteFilters.expired && !deleteFilters.consumed)}
+                          className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                          {isDeleting ? '삭제 중...' : '삭제하기'}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
   );
 }

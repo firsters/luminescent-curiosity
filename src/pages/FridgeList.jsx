@@ -36,17 +36,12 @@ export default function FridgeList() {
     e.preventDefault(); // Prevent Link navigation
     e.stopPropagation();
 
-    if (!confirm(`'${name}' 냉장고를 삭제하시겠습니까?`)) return;
+    if (!confirm(`'${name}' 냉장고를 삭제하시겠습니까?\n주의: 보관 중인 모든 음식이 함께 삭제됩니다.`)) return;
 
     try {
         await deleteFridge(id);
     } catch (error) {
-        // Provide user-friendly error if items exist
-        if (error.message.includes("existing items")) {
-            alert("냉장고에 음식이 남아있어 삭제할 수 없습니다.\n먼저 음식을 비우거나 다른 냉장고로 이동해주세요.");
-        } else {
-            alert('냉장고 삭제 실패: ' + error.message);
-        }
+        alert('냉장고 삭제 실패: ' + error.message);
     }
   };
 

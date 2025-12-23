@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, deleteDoc, updateDoc, Timestamp, orderBy, getDocs, writeBatch } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 export const FridgeContext = createContext();
@@ -69,7 +69,7 @@ export function FridgeProvider({ children }) {
   }
 
   async function deleteFridge(id) {
-    // Check if any available items exist in this fridge
+    // 1. Find all available items in this fridge
     const q = query(
       collection(db, 'inventory'),
       where('fridgeId', '==', id),
@@ -78,11 +78,17 @@ export function FridgeProvider({ children }) {
 
     const snapshot = await getDocs(q);
 
-    if (!snapshot.empty) {
-      throw new Error("Cannot delete fridge with existing items. Please move or consume them first.");
-    }
+    // 2. Add item deletions to batch
+    const batch = writeBatch(db);
 
-    return deleteDoc(doc(db, 'fridges', id));
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // 3. Delete the fridge
+    batch.delete(doc(db, 'fridges', id));
+
+    return batch.commit();
   }
 
   async function updateFridge(id, updates) {

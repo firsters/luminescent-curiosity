@@ -99,7 +99,7 @@ export default function SearchPage() {
         <div className="flex gap-2 pr-4">
             {[
                 { id: 'all', label: '전체' },
-                { id: 'expiring', label: '유통기한 임박' },
+                { id: 'expiring', label: '소비기한 임박' },
                 { id: 'fridge', label: '냉장실' },
                 { id: 'freezer', label: '냉동실' },
                 { id: 'pantry', label: '실온' }

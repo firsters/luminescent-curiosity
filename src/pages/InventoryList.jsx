@@ -4,11 +4,26 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function InventoryList() {
   const { items, loading, deleteItem, consumeItem } = useInventory();
-  const [searchParams] = useSearchParams();
-  const fridgeFilter = searchParams.get('fridge'); // 'main', 'freezer', etc.
+  const [searchParams, setSearchParams] = useSearchParams();
   
+  // URL Params
+  const fridgeId = searchParams.get('fridgeId');
+
+  // We use URL param as the source of truth for activeFilter
+  const activeFilter = searchParams.get('filter') || 'all';
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'expiring', 'fridge', 'freezer'
+
+  // Helper to update filter
+  const handleFilterChange = (newFilter) => {
+      const newParams = new URLSearchParams(searchParams);
+      if (newFilter === 'all') {
+          newParams.delete('filter');
+      } else {
+          newParams.set('filter', newFilter);
+      }
+      setSearchParams(newParams);
+  };
 
   // Modal State
   const [selectedItem, setSelectedItem] = useState(null);
@@ -17,10 +32,31 @@ export default function InventoryList() {
   const getPageTitle = () => {
       const fridgeName = searchParams.get('fridgeName');
       if (fridgeName) return fridgeName;
+      if (activeFilter === 'expiring') return '소비기한 임박';
+      if (activeFilter === 'expired') return '소비기한 만료';
+      if (activeFilter === 'safe') return '소비기한 내';
       return '음식 목록';
   };
 
-  const fridgeId = searchParams.get('fridgeId');
+  // Helpers
+  const getDaysUntilExpiry = (expiryDate) => {
+    if (!expiryDate) return 999;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiry = new Date(expiryDate);
+    expiry.setHours(0, 0, 0, 0);
+
+    const diffTime = expiry - today;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const getDDayBadge = (days) => {
+      if (days < 0) return { text: `D+${Math.abs(days)}`, color: 'bg-gray-100 text-gray-500' };
+      if (days <= 3) return { text: `D-${days}`, color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
+      if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
+      return { text: `소비기한 내`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
+  };
 
   // Filter Logic
   const filteredItems = items.filter(item => {
@@ -31,49 +67,32 @@ export default function InventoryList() {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     
     // 2. Fridge Context Filter (URL param)
-    // If we have a fridgeId param, strictly filter by it.
-    // If not, maybe show all? Or just 'available'? For now, let's show all if no fridgeId
-    // (or handle legacy items without fridgeId if necessary)
     let matchesFridge = true;
     if (fridgeId) {
         matchesFridge = item.fridgeId === fridgeId;
     }
 
-    // 3. UI Chip Filter (Visual grouping within the fridge)
-    // 'all' -> everything in this fridge
-    // 'expiring' -> expiry <= 3 days
-    // 'fridge' / 'freezer' -> these are fridge TYPES, but we are inside a specific fridge which HAS a type.
-    // Wait, the design had "Fridge / Freezer / Pantry" chips.
-    // If I'm detailed view of "Kimchi Fridge", those chips might be less relevant unless I'm using them for item categories (Fruit/Meat/etc).
-    // Let's repurpose chips to "Food Categories" or "Expiry Status".
-    // For now, let's keep 'expiring' and 'all'. 
-    
+    // 3. UI Chip Filter (Active Filter)
     let matchesCategory = true;
+    const daysUntil = getDaysUntilExpiry(item.expiryDate);
+
     if (activeFilter === 'expiring') {
-        const daysUntil = getDaysUntilExpiry(item.expiryDate);
-        matchesCategory = daysUntil <= 3;
+        matchesCategory = daysUntil >= 0 && daysUntil <= 3;
+    } else if (activeFilter === 'expired') {
+        matchesCategory = daysUntil < 0;
+    } else if (activeFilter === 'safe') {
+        // Safe means > 3 days OR no expiry
+        if (item.expiryDate) {
+             matchesCategory = daysUntil > 3;
+        } else {
+             matchesCategory = true;
+        }
+    } else if (activeFilter === 'fridge') {
+        // Placeholder for fridge type filtering if needed
     }
-    // If we want to filter by foodCategory (meat, fruit) we should change the chips.
-    // For MVP, let's just stick to Expiring filter.
 
     return matchesSearch && matchesFridge && matchesCategory;
   });
-
-  // Helpers
-  const getDaysUntilExpiry = (expiryDate) => {
-    if (!expiryDate) return 999;
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-  };
-
-  const getDDayBadge = (days) => {
-      if (days < 0) return { text: `D+${Math.abs(days)}`, color: 'bg-gray-100 text-gray-500' };
-      if (days <= 3) return { text: `D-${days}`, color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
-      if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
-      return { text: `${days}일 남음`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
-  };
 
   const navigate = useNavigate();
 
@@ -109,11 +128,14 @@ export default function InventoryList() {
             <div className="flex flex-1 flex-col gap-1 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-red-100 dark:border-red-900/30 p-4 items-center text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10"></div>
                 <p className="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight">
-                    {items.filter(i => getDaysUntilExpiry(i.expiryDate) <= 3).length}
+                    {items.filter(i => {
+                        const days = getDaysUntilExpiry(i.expiryDate);
+                        return days >= 0 && days <= 3;
+                    }).length}
                 </p>
                 <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                     <span className="material-symbols-outlined text-sm">warning</span>
-                    <p className="text-xs font-medium leading-normal">유통기한 임박</p>
+                    <p className="text-xs font-medium leading-normal">소비기한 임박</p>
                 </div>
             </div>
         </div>
@@ -140,13 +162,13 @@ export default function InventoryList() {
       <div className="flex gap-2 px-4 py-2 overflow-x-auto hide-scrollbar pb-4">
         {[
             { id: 'all', label: '전체', icon: 'check' },
+            { id: 'safe', label: '소비기한 내', icon: 'verified' },
             { id: 'expiring', label: '임박', icon: 'hourglass_bottom' },
-            { id: 'fridge', label: '냉장', icon: 'ac_unit' },
-            { id: 'freezer', label: '냉동', icon: 'inventory_2' }
+            { id: 'expired', label: '만료', icon: 'error' },
         ].map(filter => (
             <button 
                 key={filter.id}
-                onClick={() => setActiveFilter(filter.id)}
+                onClick={() => handleFilterChange(filter.id)}
                 className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-3 pr-4 active:scale-95 transition-all
                     ${activeFilter === filter.id 
                         ? 'bg-[#19e65e] dark:bg-[#19e65e] shadow-md shadow-[#19e65e]/20' 
@@ -197,7 +219,7 @@ export default function InventoryList() {
                                 </div>
                             ) : (
                                 <>
-                                    <p className="text-[#0e1b12] dark:text-white text-sm font-bold">{days}일 남음</p>
+                                    <p className="text-[#0e1b12] dark:text-white text-sm font-bold">소비기한 내</p>
                                     <p className="text-gray-400 text-xs">~{item.expiryDate?.slice(5).replace('-', '.')}</p>
                                 </>
                             )}
@@ -279,7 +301,7 @@ export default function InventoryList() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5">
-                            <p className="text-xs text-text-sub-light mb-1">유통기한</p>
+                            <p className="text-xs text-text-sub-light mb-1">소비기한</p>
                             <p className="font-bold text-[#0e1b12] dark:text-white">
                                 {selectedItem.expiryDate ? new Date(selectedItem.expiryDate).toISOString().split('T')[0] : '미지정'} 
                                 {selectedItem.expiryDate && (

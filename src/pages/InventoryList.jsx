@@ -10,7 +10,7 @@ export default function InventoryList() {
   const fridgeFilter = searchParams.get('fridge'); // 'main', 'freezer', etc.
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'expiring', 'fridge', 'freezer'
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'expiring', 'expired', 'fridge', 'freezer'
 
   // Modal State
   const [selectedItem, setSelectedItem] = useState(null);
@@ -107,12 +107,22 @@ export default function InventoryList() {
     if (activeFilter === 'expiring') {
         const daysUntil = getDaysUntilExpiry(item.expiryDate);
         matchesCategory = daysUntil >= 0 && daysUntil <= 3;
+    } else if (activeFilter === 'expired') {
+        const daysUntil = getDaysUntilExpiry(item.expiryDate);
+        matchesCategory = daysUntil < 0;
     }
     // If we want to filter by foodCategory (meat, fruit) we should change the chips.
-    // For MVP, let's just stick to Expiring filter.
 
     return matchesSearch && matchesFridge && matchesCategory;
   });
+
+  // Effect to sync URL filter param to activeFilter state
+  useEffect(() => {
+    const filterParam = searchParams.get('filter'); // 'expiring', 'expired'
+    if (filterParam) {
+        setActiveFilter(filterParam);
+    }
+  }, [searchParams]);
 
   // Helpers
   const getDaysUntilExpiry = (expiryDate) => {
@@ -266,6 +276,7 @@ export default function InventoryList() {
         {[
             { id: 'all', label: '전체', icon: 'check' },
             { id: 'expiring', label: '임박', icon: 'hourglass_bottom' },
+            { id: 'expired', label: '만료', icon: 'error' },
             { id: 'fridge', label: '냉장', icon: 'ac_unit' },
             { id: 'freezer', label: '냉동', icon: 'inventory_2' }
         ].map(filter => (

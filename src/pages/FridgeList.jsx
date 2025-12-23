@@ -99,6 +99,18 @@ export default function FridgeList() {
                 <span className="text-xs font-semibold text-red-600 dark:text-red-400">유통기한 임박</span>
                 <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{expiringCount}개</span>
             </Link>
+            <Link to="/history" className="flex min-w-[140px] flex-col rounded-2xl bg-green-50 p-4 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 active:scale-95 transition-transform">
+                <span className="text-xs font-semibold text-green-600 dark:text-green-400">소비 기록</span>
+                <span className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
+                    {items.filter(i => {
+                        if (i.status !== 'consumed') return false;
+                        // Count items consumed this month
+                        const date = i.consumedDate ? new Date(i.consumedDate) : new Date();
+                        const now = new Date();
+                        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                    }).length}개
+                </span>
+            </Link>
         </div>
 
         {/* Fridge Grid */}

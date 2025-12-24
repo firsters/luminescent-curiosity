@@ -56,10 +56,10 @@ export default function AddItem() {
   // Helper to safely parse date from various formats (Date, String, Timestamp-like)
   const safeDateToIso = (dateInput) => {
       try {
-          if (!dateInput) return new Date().toISOString().split("T")[0];
-
           let dateObj;
-          if (dateInput instanceof Date) {
+          if (!dateInput) {
+            dateObj = new Date();
+          } else if (dateInput instanceof Date) {
               dateObj = dateInput;
           } else if (dateInput?.toDate && typeof dateInput.toDate === 'function') {
               // Handle Firestore Timestamp if somehow passed directly
@@ -71,13 +71,21 @@ export default function AddItem() {
 
           if (isNaN(dateObj.getTime())) {
                // Fallback if invalid
-               return new Date().toISOString().split("T")[0];
+               dateObj = new Date();
           }
 
-          return dateObj.toISOString().split("T")[0];
+          // Use Local time components to avoid UTC shift
+          const year = dateObj.getFullYear();
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
       } catch (e) {
           console.error("Date parsing error", e);
-          return new Date().toISOString().split("T")[0];
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
       }
   };
 
@@ -220,14 +228,21 @@ export default function AddItem() {
           photoUrl = null;
       }
 
+      // Explicitly parse dates as Local Time (00:00) to avoid UTC conversion shifts
+      const parseLocal = (dateStr) => {
+          if (!dateStr) return null;
+          const [y, m, d] = dateStr.split('-').map(Number);
+          return new Date(y, m - 1, d);
+      };
+
       const itemData = {
         name: formData.name,
         fridgeId: formData.fridgeId,
         foodCategory: formData.foodCategory,
         quantity: Number(formData.quantity),
         unit: formData.unit,
-        expiryDate: new Date(formData.expiryDate),
-        addedDate: new Date(formData.buyDate),
+        expiryDate: parseLocal(formData.expiryDate),
+        addedDate: parseLocal(formData.buyDate),
         barcode: formData.barcode,
         photoUrl: photoUrl,
       };

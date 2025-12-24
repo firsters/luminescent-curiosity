@@ -14,10 +14,23 @@ export default function InventoryList() {
   // URL Params
   const fridgeId = searchParams.get("fridgeId");
 
-  // We use URL param as the source of truth for activeFilter
+  // We use URL param as the source of truth for activeFilter (Status) and activeCategory
   const activeFilter = searchParams.get("filter") || "all";
+  const activeCategory = searchParams.get("category") || "all";
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  const DEFAULT_CATEGORIES = [
+    { id: "all", label: "전체" },
+    { id: "fruit", label: "과일" },
+    { id: "vegetable", label: "채소" },
+    { id: "meat", label: "육류" },
+    { id: "dairy", label: "유제품" },
+    { id: "frozen", label: "냉동" },
+    { id: "drink", label: "음료" },
+    { id: "sauce", label: "소스" },
+    { id: "snack", label: "간식" },
+  ];
 
   // Helper to update filter
   const handleFilterChange = (newFilter) => {
@@ -26,6 +39,16 @@ export default function InventoryList() {
       newParams.delete("filter");
     } else {
       newParams.set("filter", newFilter);
+    }
+    setSearchParams(newParams);
+  };
+
+  const handleCategoryChange = (newCategory) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (newCategory === "all") {
+      newParams.delete("category");
+    } else {
+      newParams.set("category", newCategory);
     }
     setSearchParams(newParams);
   };
@@ -112,24 +135,30 @@ export default function InventoryList() {
       matchesFridge = item.fridgeId === fridgeId;
     }
 
-    // 3. UI Chip Filter (Active Filter)
-    let matchesCategory = true;
+    // 3. UI Chip Filter (Active Status Filter)
+    let matchesStatus = true;
     const daysUntil = getDaysUntilExpiry(item.expiryDate);
 
     if (activeFilter === "expiring") {
-      matchesCategory = daysUntil >= 0 && daysUntil <= 3;
+      matchesStatus = daysUntil >= 0 && daysUntil <= 3;
     } else if (activeFilter === "expired") {
-      matchesCategory = daysUntil < 0;
+      matchesStatus = daysUntil < 0;
     } else if (activeFilter === "safe") {
       // Safe means > 3 days OR no expiry
       if (item.expiryDate) {
-        matchesCategory = daysUntil > 3;
+        matchesStatus = daysUntil > 3;
       } else {
-        matchesCategory = true;
+        matchesStatus = true; // No expiry is considered safe
       }
     }
 
-    return matchesSearch && matchesFridge && matchesCategory;
+    // 4. Category Filter
+    let matchesCategory = true;
+    if (activeCategory !== "all") {
+      matchesCategory = item.foodCategory === activeCategory;
+    }
+
+    return matchesSearch && matchesFridge && matchesStatus && matchesCategory;
   });
 
   const navigate = useNavigate();
@@ -163,7 +192,8 @@ export default function InventoryList() {
 
       {/* Filter Cards (Replaced Stats Dashboard) */}
       <div className="px-4 py-4">
-        <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Status Filters */}
+        <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide mb-2">
           {/* Safe Card */}
           <button
             onClick={() => handleFilterChange("safe")}
@@ -217,6 +247,24 @@ export default function InventoryList() {
               {expiredCount}개
             </span>
           </button>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex w-full gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {DEFAULT_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategoryChange(cat.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border
+                        ${
+                          activeCategory === cat.id
+                            ? "bg-gray-800 text-white border-gray-900 dark:bg-white dark:text-black"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                        }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </div>
 

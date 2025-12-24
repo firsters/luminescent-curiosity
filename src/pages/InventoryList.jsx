@@ -287,7 +287,7 @@ export default function InventoryList() {
 
       {/* FAB (Floating Action Button) - Optional if Bottom Nav has Add */}
       <div className="fixed bottom-24 right-5 z-40">
-        <Link to="/add" className="flex size-14 items-center justify-center rounded-full bg-[#19e65e] text-[#0e1b12] shadow-lg shadow-[#19e65e]/40 hover:scale-105 active:scale-95 transition-all">
+        <Link to="/add" state={{ fridgeId }} className="flex size-14 items-center justify-center rounded-full bg-[#19e65e] text-[#0e1b12] shadow-lg shadow-[#19e65e]/40 hover:scale-105 active:scale-95 transition-all">
             <span className="material-symbols-outlined text-3xl">add</span>
         </Link>
       </div>

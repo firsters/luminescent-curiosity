@@ -105,11 +105,17 @@ export default function AddItem() {
       if (editModeItem.photoUrl) {
         setImagePreview(editModeItem.photoUrl);
       }
-    } else if (fridges.length > 0 && !formData.fridgeId) {
-       // Set default fridge only if NOT editing and no fridge selected
-       setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
+    } else if (!formData.fridgeId) {
+      // If we have a passed fridgeId from navigation, use it.
+      if (location.state?.fridgeId) {
+        setFormData((prev) => ({ ...prev, fridgeId: location.state.fridgeId }));
+      } else if (fridges.length === 1) {
+        // If there is only one fridge, auto-select it.
+        setFormData((prev) => ({ ...prev, fridgeId: fridges[0].id }));
+      }
+      // Otherwise (multiple fridges & no selection passed), leave it empty
     }
-  }, [isEditMode, editModeItem, fridges]);
+  }, [isEditMode, editModeItem, fridges, location.state]);
 
 
   const cameraInputRef = useRef(null);

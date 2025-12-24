@@ -62,7 +62,7 @@ export default function InventoryList() {
       if (days < 0) return { text: `D+${Math.abs(days)}`, color: 'bg-gray-100 text-gray-500' };
       if (days <= 3) return { text: `D-${days}`, color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
       if (days <= 7) return { text: `D-${days}`, color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' };
-      return { text: `소비기한 내`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
+      return { text: `여유`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
   };
 
   // Stats for the 3 Cards
@@ -151,7 +151,7 @@ export default function InventoryList() {
                         ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 ring-1 ring-green-400'
                         : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30 opacity-70 hover:opacity-100'}`}
             >
-                <span className="text-xs font-semibold text-green-700 dark:text-green-300">소비기한 내</span>
+                <span className="text-xs font-semibold text-green-700 dark:text-green-300">여유</span>
                 <span className="mt-1 text-xl font-bold text-green-700 dark:text-green-300">{safeCount}개</span>
             </button>
 
@@ -246,7 +246,7 @@ export default function InventoryList() {
                                 </div>
                             ) : (
                                 <>
-                                    <p className="text-[#0e1b12] dark:text-white text-sm font-bold">소비기한 내</p>
+                                    <p className="text-[#0e1b12] dark:text-white text-sm font-bold">여유</p>
                                     <p className="text-gray-400 text-xs">~{item.expiryDate?.slice(5).replace('-', '.')}</p>
                                 </>
                             )}

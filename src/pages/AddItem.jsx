@@ -6,6 +6,7 @@ import { fetchProductFromBarcode } from "../lib/openFoodFacts";
 import { uploadImage } from "../lib/storage";
 import BarcodeScanner from "../components/BarcodeScanner";
 import { compressImage } from "../lib/imageCompression";
+import { safeDateToIso, parseLocal } from "../lib/dateUtils";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -61,61 +62,6 @@ export default function AddItem() {
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
 
-  // Helper to safely parse date from various formats (Date, String, Timestamp-like)
-  const safeDateToIso = (dateInput) => {
-    try {
-      let dateObj;
-      if (!dateInput) {
-        dateObj = new Date();
-      } else if (dateInput instanceof Date) {
-        dateObj = dateInput;
-      } else if (dateInput?.toDate && typeof dateInput.toDate === "function") {
-        // Handle Firestore Timestamp if somehow passed directly
-        dateObj = dateInput.toDate();
-      } else if (
-        typeof dateInput === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
-      ) {
-        // Already YYYY-MM-DD string, just return it
-        return dateInput;
-      } else {
-        // Fallback for other strings or numbers
-        dateObj = new Date(dateInput);
-      }
-
-      if (isNaN(dateObj.getTime())) {
-        // Fallback if invalid
-        dateObj = new Date();
-      }
-
-      // Use Local time components to avoid UTC shift
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    } catch (e) {
-      console.error("Date parsing error", e);
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
-  };
-
-  // Initialize form with Edit Data if available
-  useEffect(() => {
-    if (isEditMode) {
-      setFormData({
-        name: editModeItem.name || "",
-        foodCategory: editModeItem.foodCategory || "fruit",
-        fridgeId: editModeItem.fridgeId || "",
-        quantity: editModeItem.quantity || 1,
-        unit: editModeItem.unit || "개",
-        expiryDate: safeDateToIso(editModeItem.expiryDate),
-        buyDate: safeDateToIso(editModeItem.addedDate),
-        barcode: editModeItem.barcode || "",
-      });
       if (editModeItem.photoUrl) {
         setImagePreview(editModeItem.photoUrl);
       }
@@ -252,12 +198,6 @@ export default function AddItem() {
       }
 
       // Explicitly parse dates as Local Time (00:00) to avoid UTC conversion shifts
-      const parseLocal = (dateStr) => {
-        if (!dateStr) return null;
-        const [y, m, d] = dateStr.split("-").map(Number);
-        return new Date(y, m - 1, d);
-      };
-
       const itemData = {
         name: formData.name,
         fridgeId: formData.fridgeId,

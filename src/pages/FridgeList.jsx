@@ -160,7 +160,7 @@ export default function FridgeList() {
                 onClick={() => handleStatCardClick('safe', safeCount)}
                 className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform text-left"
             >
-                <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">소비기한 내</span>
+                <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">여유</span>
                 <span className="mt-1 text-2xl font-bold text-text-main-light dark:text-text-main-dark">{safeCount}개</span>
             </button>
             <button

@@ -37,15 +37,23 @@ export default function AddItem() {
   const [isEditingCategories, setIsEditingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [formData, setFormData] = useState({
-    name: "",
-    foodCategory: "fruit", // fruit, vegetable, meat, dairy, frozen
-    fridgeId: "", // Selected Fridge ID
-    quantity: 1,
-    unit: "개",
-    expiryDate: new Date().toISOString().split("T")[0],
-    buyDate: new Date().toISOString().split("T")[0],
-    barcode: "",
+  const [formData, setFormData] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    return {
+      name: "",
+      foodCategory: "fruit", // fruit, vegetable, meat, dairy, frozen
+      fridgeId: "", // Selected Fridge ID
+      quantity: 1,
+      unit: "개",
+      expiryDate: todayStr,
+      buyDate: todayStr,
+      barcode: "",
+    };
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -55,38 +63,44 @@ export default function AddItem() {
 
   // Helper to safely parse date from various formats (Date, String, Timestamp-like)
   const safeDateToIso = (dateInput) => {
-      try {
-          let dateObj;
-          if (!dateInput) {
-            dateObj = new Date();
-          } else if (dateInput instanceof Date) {
-              dateObj = dateInput;
-          } else if (dateInput?.toDate && typeof dateInput.toDate === 'function') {
-              // Handle Firestore Timestamp if somehow passed directly
-              dateObj = dateInput.toDate();
-          } else {
-              // String or number
-              dateObj = new Date(dateInput);
-          }
-
-          if (isNaN(dateObj.getTime())) {
-               // Fallback if invalid
-               dateObj = new Date();
-          }
-
-          // Use Local time components to avoid UTC shift
-          const year = dateObj.getFullYear();
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dateObj.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-      } catch (e) {
-          console.error("Date parsing error", e);
-          const now = new Date();
-          const year = now.getFullYear();
-          const month = String(now.getMonth() + 1).padStart(2, '0');
-          const day = String(now.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
+    try {
+      let dateObj;
+      if (!dateInput) {
+        dateObj = new Date();
+      } else if (dateInput instanceof Date) {
+        dateObj = dateInput;
+      } else if (dateInput?.toDate && typeof dateInput.toDate === "function") {
+        // Handle Firestore Timestamp if somehow passed directly
+        dateObj = dateInput.toDate();
+      } else if (
+        typeof dateInput === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
+      ) {
+        // Already YYYY-MM-DD string, just return it
+        return dateInput;
+      } else {
+        // Fallback for other strings or numbers
+        dateObj = new Date(dateInput);
       }
+
+      if (isNaN(dateObj.getTime())) {
+        // Fallback if invalid
+        dateObj = new Date();
+      }
+
+      // Use Local time components to avoid UTC shift
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      console.error("Date parsing error", e);
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
   };
 
   // Initialize form with Edit Data if available
@@ -116,7 +130,6 @@ export default function AddItem() {
       // Otherwise (multiple fridges & no selection passed), leave it empty
     }
   }, [isEditMode, editModeItem, fridges, location.state]);
-
 
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
@@ -226,19 +239,23 @@ export default function AddItem() {
       // Upload new image if selected
       if (imageFile) {
         photoUrl = await uploadImage(imageFile);
-      } else if (imagePreview && !imagePreview.startsWith("http") && !imagePreview.startsWith("blob")) {
-         // If it's a base64 or something else not http/blob, treat as null (shouldn't happen with current logic usually)
-         // But if it's existing URL (starts with http), we keep it.
-         // If it is blob (preview), we should have imageFile.
+      } else if (
+        imagePreview &&
+        !imagePreview.startsWith("http") &&
+        !imagePreview.startsWith("blob")
+      ) {
+        // If it's a base64 or something else not http/blob, treat as null (shouldn't happen with current logic usually)
+        // But if it's existing URL (starts with http), we keep it.
+        // If it is blob (preview), we should have imageFile.
       } else if (!imagePreview) {
-          photoUrl = null;
+        photoUrl = null;
       }
 
       // Explicitly parse dates as Local Time (00:00) to avoid UTC conversion shifts
       const parseLocal = (dateStr) => {
-          if (!dateStr) return null;
-          const [y, m, d] = dateStr.split('-').map(Number);
-          return new Date(y, m - 1, d);
+        if (!dateStr) return null;
+        const [y, m, d] = dateStr.split("-").map(Number);
+        return new Date(y, m - 1, d);
       };
 
       const itemData = {
@@ -254,9 +271,9 @@ export default function AddItem() {
       };
 
       if (isEditMode) {
-          await updateItem(editModeItem.id, itemData);
+        await updateItem(editModeItem.id, itemData);
       } else {
-          await addItem(itemData);
+        await addItem(itemData);
       }
 
       // Navigate back to the fridge we just added/updated to
@@ -313,49 +330,49 @@ export default function AddItem() {
       <div className="flex-1 overflow-y-auto pb-4">
         {/* Input Methods Grid - Only show in Add Mode */}
         {!isEditMode && (
-            <div className="grid grid-cols-3 gap-2 p-4">
+          <div className="grid grid-cols-3 gap-2 p-4">
             <button
-                onClick={() => cameraInputRef.current?.click()}
-                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+              onClick={() => cameraInputRef.current?.click()}
+              className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
             >
-                <div className="rounded-full bg-primary/10 p-3 text-primary">
+              <div className="rounded-full bg-primary/10 p-3 text-primary">
                 <span className="material-symbols-outlined text-[28px]">
-                    photo_camera
+                  photo_camera
                 </span>
-                </div>
-                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+              </div>
+              <span className="text-sm font-bold leading-tight whitespace-nowrap">
                 사진 촬영
-                </span>
+              </span>
             </button>
 
             <button
-                onClick={() => setScanning(true)}
-                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+              onClick={() => setScanning(true)}
+              className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
             >
-                <div className="rounded-full bg-primary/10 p-3 text-primary">
+              <div className="rounded-full bg-primary/10 p-3 text-primary">
                 <span className="material-symbols-outlined text-[28px]">
-                    qr_code_scanner
+                  qr_code_scanner
                 </span>
-                </div>
-                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+              </div>
+              <span className="text-sm font-bold leading-tight whitespace-nowrap">
                 바코드 스캔
-                </span>
+              </span>
             </button>
 
             <button
-                onClick={() => galleryInputRef.current?.click()}
-                className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
+              onClick={() => galleryInputRef.current?.click()}
+              className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
             >
-                <div className="rounded-full bg-primary/10 p-3 text-primary">
+              <div className="rounded-full bg-primary/10 p-3 text-primary">
                 <span className="material-symbols-outlined text-[28px]">
-                    photo_library
+                  photo_library
                 </span>
-                </div>
-                <span className="text-sm font-bold leading-tight whitespace-nowrap">
+              </div>
+              <span className="text-sm font-bold leading-tight whitespace-nowrap">
                 앨범 선택
-                </span>
+              </span>
             </button>
-            </div>
+          </div>
         )}
 
         {/* Hidden File Inputs */}
@@ -396,15 +413,15 @@ export default function AddItem() {
 
         {/* If Edit mode and no image, show option to add one */}
         {isEditMode && !imagePreview && (
-            <div className="px-4 pb-2">
-                 <button
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="w-full h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center text-gray-500 gap-1 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                 >
-                     <span className="material-symbols-outlined">add_a_photo</span>
-                     <span className="text-xs">사진 추가</span>
-                 </button>
-            </div>
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => cameraInputRef.current?.click()}
+              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center text-gray-500 gap-1 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+            >
+              <span className="material-symbols-outlined">add_a_photo</span>
+              <span className="text-xs">사진 추가</span>
+            </button>
+          </div>
         )}
 
         {/* Form Fields */}

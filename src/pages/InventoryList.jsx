@@ -3,6 +3,7 @@ import { useInventory } from '../context/InventoryContext';
 import { useFridge } from '../context/FridgeContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ItemDetailModal from '../components/ItemDetailModal';
+import ItemCard from '../components/ItemCard';
 
 export default function InventoryList() {
   const { items, loading, deleteItem, consumeItem } = useInventory();
@@ -222,58 +223,13 @@ export default function InventoryList() {
                 }
 
                 return (
-                    <div 
-                        key={item.id} 
+                    <ItemCard
+                        key={item.id}
+                        item={item}
+                        fridgeName={fridgeNameMap[item.fridgeId] || '미지정'}
                         onClick={() => setSelectedItem(item)}
-                        className={`group flex items-center gap-4 rounded-2xl p-3 shadow-sm border hover:shadow-md active:scale-[0.99] transition-all cursor-pointer relative overflow-hidden ${itemBgClass}`}
-                    >
-                        <div className="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
-                            {item.photoUrl ? (
-                                <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover opacity-90" />
-                            ) : (
-                                <span className="material-symbols-outlined text-gray-400">image</span>
-                            )}
-                            <div className={`absolute bottom-0 w-full h-1 ${days <= 3 ? 'bg-red-500' : 'bg-primary'}`}></div>
-                        </div>
-                        <div className="flex flex-1 flex-col justify-center">
-                            {/* Fridge Name Badge */}
-                            <span className="text-[10px] font-bold text-text-sub-light dark:text-text-sub-dark bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded-md self-start mb-1">
-                                {fridgeNameMap[item.fridgeId] || '미지정'}
-                            </span>
-
-                            <p className="text-[#0e1b12] dark:text-white text-base font-bold leading-tight">{item.name}</p>
-                            <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-normal mt-0.5">
-                                {item.category} • {item.quantity}{item.unit}
-                            </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                            {days <= 7 ? (
-                                <div className={`flex items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-bold leading-none ${badge.color}`}>
-                                    {badge.text}
-                                </div>
-                            ) : (
-                                <>
-                                    <p className="text-[#0e1b12] dark:text-white text-sm font-bold">여유</p>
-                                    <p className="text-gray-400 text-xs">~{item.expiryDate?.slice(5).replace('-', '.')}</p>
-                                </>
-                            )}
-                            
-                            {/* Actions */}
-                            <button 
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if(confirm(`${item.name}을(를) 소비 처리하시겠습니까?`)) {
-                                        consumeItem(item.id);
-                                    }
-                                }}
-                                className="z-10 bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-full transition-colors"
-                                title="소비 완료"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">check</span>
-                            </button>
-                        </div>
-                    </div>
+                        onConsume={consumeItem}
+                    />
                 );
             })}
             

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useFridge } from '../context/FridgeContext';
 import ItemDetailModal from '../components/ItemDetailModal';
+import ItemCard from '../components/ItemCard';
 
 export default function SearchPage() {
   const navigate = useNavigate();
@@ -48,17 +49,15 @@ export default function SearchPage() {
   const getDaysUntilExpiry = (expiryDate) => {
     if (!expiryDate) return 999;
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const expiry = new Date(expiryDate);
+    expiry.setHours(0, 0, 0, 0);
+
     const diffTime = expiry - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
   };
   
-  const getBadgeColor = (days) => {
-      if (days <= 3) return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-      if (days <= 7) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-      return 'bg-primary/10 text-primary border-primary/20';
-  };
-
   const getStorageName = (item) => {
       const fridge = fridges.find(f => f.id === item.fridgeId);
       return fridge ? fridge.name : (item.category === 'fridge' ? '냉장실' : item.category === 'freezer' ? '냉동실' : '실온');
@@ -152,40 +151,15 @@ export default function SearchPage() {
                 </div>
                 
                 <div className="flex flex-col gap-3 pb-20">
-                    {filteredItems.map(item => {
-                        const days = getDaysUntilExpiry(item.expiryDate);
-                        
-                        return (
-                            <div
-                                key={item.id}
-                                onClick={() => setSelectedItem(item)}
-                                className="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 cursor-pointer"
-                            >
-                                <div className="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden">
-                                     {/* Use Unsplash or uploaded URL */}
-                                     {item.photoUrl ? (
-                                        <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-gray-400">fastfood</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex flex-col justify-center flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <p className="text-slate-900 dark:text-white text-base font-bold leading-normal truncate">{item.name}</p>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${getBadgeColor(days)}`}>
-                                            {days < 0 ? '만료' : `D-${days}`}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
-                                        <span className="material-symbols-outlined text-[16px]">kitchen</span>
-                                        <span className="truncate">{getStorageName(item)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {filteredItems.map(item => (
+                        <ItemCard
+                            key={item.id}
+                            item={item}
+                            fridgeName={getStorageName(item)}
+                            onClick={() => setSelectedItem(item)}
+                            onConsume={consumeItem}
+                        />
+                    ))}
                     
                     {filteredItems.length === 0 && (
                         <div className="py-10 text-center text-gray-400">

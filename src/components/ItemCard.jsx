@@ -97,7 +97,13 @@ export default function ItemCard({ item, fridgeName, onClick, onConsume, onDelet
             ) : (
             <div className="flex flex-col items-end">
                 <p className="text-[#0e1b12] dark:text-white text-sm font-bold">여유</p>
-                <p className="text-gray-400 text-[10px]">~{item.expiryDate?.slice(5).replace('-', '.')}</p>
+                <p className="text-gray-400 text-[10px]">
+                  {item.expiryDate instanceof Date
+                    ? `~${String(item.expiryDate.getMonth() + 1).padStart(2, '0')}.${String(item.expiryDate.getDate()).padStart(2, '0')}`
+                    : (typeof item.expiryDate === 'string'
+                        ? `~${item.expiryDate.slice(5).replace('-', '.')}`
+                        : '')}
+                </p>
             </div>
             )
         )}

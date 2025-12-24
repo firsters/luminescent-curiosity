@@ -62,6 +62,21 @@ export default function AddItem() {
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
 
+  // Initialize form with Edit Data if available
+  useEffect(() => {
+    if (isEditMode) {
+      console.log("AddItem EditMode Item:", editModeItem);
+      setFormData({
+        name: editModeItem.name || "",
+        foodCategory: editModeItem.foodCategory || "fruit",
+        fridgeId: editModeItem.fridgeId || "",
+        quantity: editModeItem.quantity || 1,
+        unit: editModeItem.unit || "개",
+        expiryDate: safeDateToIso(editModeItem.expiryDate),
+        buyDate: safeDateToIso(editModeItem.addedDate),
+        barcode: editModeItem.barcode || "",
+      });
+
       if (editModeItem.photoUrl) {
         setImagePreview(editModeItem.photoUrl);
       }

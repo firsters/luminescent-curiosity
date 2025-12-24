@@ -1,4 +1,3 @@
-```javascript
 import { useState, useMemo } from "react";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";

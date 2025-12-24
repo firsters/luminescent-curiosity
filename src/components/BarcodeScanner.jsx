@@ -5,93 +5,68 @@ export default function BarcodeScanner({ onResult, onClose }) {
   const [error, setError] = useState(null);
 
   // Hints for common food barcode formats
-  // Note: BrowserBarcodeReader from @zxing/library might generate these constants
-  // But react-zxing passes "hints" to the underlying BrowserMultiFormatReader.
-  // Using explicit format strings often helps.
-  // However, react-zxing 2.x API simplifies this usually.
+  // To avoid import errors with @zxing/library, we rely on default multi-format reader
+  // but ensure constraints allows for good focus.
 
-  // Let's try adding explicit constraints first which is the most common issue.
   const { ref } = useZxing({
     onDecodeResult(result) {
+      // eslint-disable-next-line no-console
       console.log("Barcode detected:", result.getText());
       onResult(result.getText());
     },
     onError(err) {
-      // Only log meaningful errors, not "NotFound"
       if (err.name !== "NotFoundException") {
+        // eslint-disable-next-line no-console
         console.warn("Scanner error:", err);
       }
     },
-    // Constraints: Prefer back camera, higher res
+    // Use 'ideal' constraints which are more robust than strict 'min'
     constraints: {
       video: {
         facingMode: "environment",
-        width: { min: 640, ideal: 1280, max: 1920 },
-        height: { min: 480, ideal: 720, max: 1080 },
-        // objectFit: "cover" is CSS, not a constraint
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        focusMode: "continuous", // Attempt to hint focus (experimental)
       },
     },
-    // Time between scans in ms
     timeBetweenDecodingAttempts: 300,
   });
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "black",
-        zIndex: 2000,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div style={{ flex: 1, position: "relative" }}>
-        <video
-          ref={ref}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            border: "2px solid white",
-            width: "250px",
-            height: "250px",
-            borderRadius: "20px",
-            boxShadow: "0 0 0 9999px rgba(0,0,0,0.5)",
-          }}
-        >
-          {/* Scanning Line Animation */}
+    <div className="fixed inset-0 bg-black z-[2000]">
+      {/* 1. Fullscreen Video */}
+      <video
+        ref={ref}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* 2. Overlay Centered */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative w-64 h-64 rounded-3xl border-2 border-white/50 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] overflow-hidden">
+          {/* Scanning Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-[scan_2s_infinite]" />
+
+          {/* Corner Markers (Visual Polish) */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl" />
         </div>
+
         {error && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "20px",
-              left: 0,
-              right: 0,
-              color: "red",
-              textAlign: "center",
-            }}
-          >
+          <div className="absolute bottom-32 left-0 right-0 text-center text-red-500 bg-black/50 p-2">
             {error}
           </div>
         )}
       </div>
-      <div style={{ padding: "20px", background: "rgba(0,0,0,0.8)" }}>
+
+      {/* 3. Controls (Floating at bottom) */}
+      <div className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-auto">
         <button
-          className="btn btn-secondary"
           onClick={onClose}
-          style={{ background: "white", color: "black" }}
+          className="bg-white text-black px-8 py-3 rounded-full font-bold shadow-lg active:scale-95 transition-transform"
         >
-          Cancel
+          취소
         </button>
       </div>
     </div>

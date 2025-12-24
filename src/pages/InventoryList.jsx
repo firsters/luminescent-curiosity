@@ -148,11 +148,11 @@ export default function InventoryList() {
                 onClick={() => handleFilterChange('safe')}
                 className={`flex min-w-[100px] flex-1 flex-col rounded-2xl p-3 border transition-all active:scale-95 text-left
                     ${activeFilter === 'safe'
-                        ? 'bg-primary/20 border-primary ring-1 ring-primary'
-                        : 'bg-primary/5 dark:bg-surface-dark border-primary/20 opacity-70 hover:opacity-100'}`}
+                        ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 ring-1 ring-green-400'
+                        : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30 opacity-70 hover:opacity-100'}`}
             >
-                <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">소비기한 내</span>
-                <span className="mt-1 text-xl font-bold text-text-main-light dark:text-text-main-dark">{safeCount}개</span>
+                <span className="text-xs font-semibold text-green-700 dark:text-green-300">소비기한 내</span>
+                <span className="mt-1 text-xl font-bold text-green-700 dark:text-green-300">{safeCount}개</span>
             </button>
 
             {/* Expiring Card */}
@@ -160,11 +160,11 @@ export default function InventoryList() {
                 onClick={() => handleFilterChange('expiring')}
                 className={`flex min-w-[100px] flex-1 flex-col rounded-2xl p-3 border transition-all active:scale-95 text-left
                     ${activeFilter === 'expiring'
-                        ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 ring-1 ring-orange-400'
-                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 opacity-70 hover:opacity-100'}`}
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 ring-1 ring-yellow-400'
+                        : 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-900/30 opacity-70 hover:opacity-100'}`}
             >
-                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">임박</span>
-                <span className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">{expiringCount}개</span>
+                <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-300">임박</span>
+                <span className="mt-1 text-xl font-bold text-yellow-700 dark:text-yellow-300">{expiringCount}개</span>
             </button>
 
             {/* Expired Card */}
@@ -205,11 +205,20 @@ export default function InventoryList() {
                 const days = getDaysUntilExpiry(item.expiryDate);
                 const badge = getDDayBadge(days);
 
+                let itemBgClass = '';
+                if (days < 0) {
+                     itemBgClass = 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30';
+                } else if (days <= 3) {
+                     itemBgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-100 dark:border-yellow-900/30';
+                } else {
+                     itemBgClass = 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30';
+                }
+
                 return (
                     <div 
                         key={item.id} 
                         onClick={() => setSelectedItem(item)}
-                        className="group flex items-center gap-4 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm border border-transparent hover:shadow-md active:scale-[0.99] transition-all cursor-pointer relative overflow-hidden"
+                        className={`group flex items-center gap-4 rounded-2xl p-3 shadow-sm border hover:shadow-md active:scale-[0.99] transition-all cursor-pointer relative overflow-hidden ${itemBgClass}`}
                     >
                         <div className="relative flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 overflow-hidden">
                             {item.photoUrl ? (

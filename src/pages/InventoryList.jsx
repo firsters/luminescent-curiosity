@@ -1,10 +1,11 @@
+```javascript
 import { useState, useMemo } from "react";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ItemDetailModal from "../components/ItemDetailModal";
 import ItemCard from "../components/ItemCard";
-import { getDaysUntilExpiry } from "../lib/dateUtils";
+import { getDaysUntilExpiry, safeDateToIso } from "../lib/dateUtils";
 
 export default function InventoryList() {
   const { items, loading, deleteItem, consumeItem } = useInventory();
@@ -293,7 +294,15 @@ export default function InventoryList() {
           selectedItem ? fridgeNameMap[selectedItem.fridgeId] || "미지정" : ""
         }
         onClose={() => setSelectedItem(null)}
-        onEdit={() => navigate("/add", { state: { editItem: selectedItem } })}
+        onEdit={() => {
+          // Pass standardized date strings to avoid router serialization issues
+          const safeItem = {
+            ...selectedItem,
+            expiryDate: safeDateToIso(selectedItem.expiryDate),
+            addedDate: safeDateToIso(selectedItem.addedDate),
+          };
+          navigate("/add", { state: { editItem: safeItem } });
+        }}
         onDelete={() => {
           deleteItem(selectedItem.id);
           setSelectedItem(null);

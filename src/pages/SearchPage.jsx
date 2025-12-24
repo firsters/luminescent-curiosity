@@ -2,14 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useFridge } from '../context/FridgeContext';
+import ItemDetailModal from '../components/ItemDetailModal';
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { items } = useInventory();
+  const { items, deleteItem, consumeItem } = useInventory();
   const { fridges } = useFridge();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // all, expiring, fridge, freezer, pantry
   
+  // Modal State
+  const [selectedItem, setSelectedItem] = useState(null);
+
   // Recent searches (Local Storage could be used here)
   const [recentSearches, setRecentSearches] = useState(['계란', '우유']); 
 
@@ -152,7 +156,11 @@ export default function SearchPage() {
                         const days = getDaysUntilExpiry(item.expiryDate);
                         
                         return (
-                            <div key={item.id} className="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 cursor-pointer">
+                            <div
+                                key={item.id}
+                                onClick={() => setSelectedItem(item)}
+                                className="group flex items-center gap-4 bg-white dark:bg-surface-dark rounded-2xl p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 cursor-pointer"
+                            >
                                 <div className="relative bg-slate-100 dark:bg-white/10 rounded-xl size-16 shrink-0 overflow-hidden">
                                      {/* Use Unsplash or uploaded URL */}
                                      {item.photoUrl ? (
@@ -189,6 +197,22 @@ export default function SearchPage() {
           )}
 
       </div>
+
+      {/* Item Detail Modal */}
+      <ItemDetailModal
+        item={selectedItem}
+        fridgeName={selectedItem ? getStorageName(selectedItem) : ''}
+        onClose={() => setSelectedItem(null)}
+        onEdit={() => navigate('/add', { state: { editItem: selectedItem } })}
+        onDelete={() => {
+            deleteItem(selectedItem.id);
+            setSelectedItem(null);
+        }}
+        onConsume={() => {
+            consumeItem(selectedItem.id);
+            setSelectedItem(null);
+        }}
+      />
     </div>
   );
 }

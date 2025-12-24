@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useFridge } from '../context/FridgeContext';
@@ -10,12 +10,18 @@ export default function SearchPage() {
   const { items, deleteItem, consumeItem } = useInventory();
   const { fridges } = useFridge();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // all, expiring, fridge, freezer, pantry
   
+  // Multi-select Filters State
+  const [selectedFilters, setSelectedFilters] = useState({
+    status: [],   // 'safe', 'expiring', 'expired'
+    storage: [],  // 'fridge', 'freezer', 'pantry' (fridge types)
+    category: []  // foodCategory ids
+  });
+
   // Modal State
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Recent searches (Local Storage could be used here)
+  // Recent searches
   const [recentSearches, setRecentSearches] = useState(['계란', '우유']); 
 
   const inputRef = useRef(null);
@@ -24,28 +30,30 @@ export default function SearchPage() {
       inputRef.current?.focus();
   }, []);
 
-  // Filter Logic
-  const filteredItems = items.filter(item => {
-      if (!searchTerm && activeFilter === 'all') return false; // Don't show everything by default? Stitch shows "Recent"
+  // Constants & Helpers
+  const CATEGORY_LABELS = {
+    fruit: "과일",
+    vegetable: "채소",
+    meat: "육류",
+    dairy: "유제품",
+    frozen: "냉동",
+    drink: "음료",
+    sauce: "소스",
+    snack: "간식",
+  };
 
-      const matchesSearch = !searchTerm || item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      let matchesFilter = true;
-      if (activeFilter === 'expiring') {
-          const days = getDaysUntilExpiry(item.expiryDate);
-          matchesFilter = days <= 3;
-      } else if (['fridge', 'freezer', 'pantry'].includes(activeFilter)) {
-          // Need to check the TYPE of the fridge this item belongs to
-          const fridge = fridges.find(f => f.id === item.fridgeId);
-          matchesFilter = fridge?.type === activeFilter;
-          // Fallback for items without fridgeId (legacy) -> check item category?
-          if (!fridge) matchesFilter = item.category === activeFilter; 
-      }
+  const STATUS_OPTIONS = [
+    { id: 'safe', label: '여유' },
+    { id: 'expiring', label: '임박' },
+    { id: 'expired', label: '만료' }
+  ];
 
-      return matchesSearch && matchesFilter;
-  });
+  const STORAGE_OPTIONS = [
+    { id: 'fridge', label: '냉장실' },
+    { id: 'freezer', label: '냉동실' },
+    { id: 'pantry', label: '실온' }
+  ];
 
-  // Helpers
   const getDaysUntilExpiry = (expiryDate) => {
     if (!expiryDate) return 999;
     const today = new Date();
@@ -60,8 +68,109 @@ export default function SearchPage() {
   
   const getStorageName = (item) => {
       const fridge = fridges.find(f => f.id === item.fridgeId);
-      return fridge ? fridge.name : (item.category === 'fridge' ? '냉장실' : item.category === 'freezer' ? '냉동실' : '실온');
+      // Fallback if fridge not found but category exists (legacy)
+      if (!fridge) return item.category === 'fridge' ? '냉장실' : item.category === 'freezer' ? '냉동실' : '실온';
+      return fridge.name;
   };
+
+  const getFridgeType = (item) => {
+      const fridge = fridges.find(f => f.id === item.fridgeId);
+      if (fridge) return fridge.type; // 'kimchi' might need mapping if we only have fridge/freezer/pantry filters
+      // Mapping kimchi to fridge or separate?
+      // The requirement only listed fridge, freezer, pantry.
+      // AddItem has: kimchi, freezer, pantry, default(fridge).
+      if (fridge && fridge.type === 'kimchi') return 'fridge'; // Treat kimchi as fridge for this filter? Or add Kimchi?
+      // Let's assume standard types. If 'kimchi', it might not match 'fridge' unless we map it.
+      // User requested "Storage Type" (Fridge, Freezer, Pantry).
+      // If I look at SearchPage original code: it had 'fridge', 'freezer', 'pantry'.
+      return fridge ? fridge.type : null;
+  };
+
+  // Compute Top 5 Categories
+  const topCategories = useMemo(() => {
+    const counts = {};
+    items.forEach(item => {
+      if (item.foodCategory) {
+        counts[item.foodCategory] = (counts[item.foodCategory] || 0) + 1;
+      }
+    });
+
+    // Convert to array and sort
+    const sorted = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1]) // Sort by count desc
+      .slice(0, 5) // Take top 5
+      .map(([id]) => ({ id, label: CATEGORY_LABELS[id] || id }));
+
+    return sorted;
+  }, [items]);
+
+  // Filter Logic
+  const filteredItems = items.filter(item => {
+      // 0. Search Term
+      if (!searchTerm &&
+          selectedFilters.status.length === 0 &&
+          selectedFilters.storage.length === 0 &&
+          selectedFilters.category.length === 0) return false; // Default: show nothing or recent? Original code: show nothing if !searchTerm && activeFilter === 'all'
+
+      const matchesSearch = !searchTerm || item.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // 1. Status Filter (OR logic within status)
+      let matchesStatus = true;
+      if (selectedFilters.status.length > 0) {
+          const days = getDaysUntilExpiry(item.expiryDate);
+          const isExpired = days < 0;
+          const isExpiring = days >= 0 && days <= 3;
+          const isSafe = days > 3; // or no expiry?
+
+          matchesStatus = selectedFilters.status.some(status => {
+              if (status === 'expired') return isExpired;
+              if (status === 'expiring') return isExpiring;
+              if (status === 'safe') return isSafe;
+              return false;
+          });
+      }
+
+      // 2. Storage Filter (OR logic within storage)
+      let matchesStorage = true;
+      if (selectedFilters.storage.length > 0) {
+          const fType = getFridgeType(item);
+          // Map kimchi to fridge if needed, or handle as mismatch.
+          // If 'fridge' is selected, does it include 'kimchi'? usually yes in simple UI, but let's stick to exact match or 'fridge' logic.
+          // original SearchPage used: matchesFilter = fridge?.type === activeFilter;
+          // Let's stick to exact match.
+          // Note: AddItem uses 'kimchi', 'freezer', 'pantry', 'default'(which is fridge?).
+          // Let's assume 'kimchi' is separate. If user only asked for 3 buttons, maybe map Kimchi to Fridge?
+          // I will assume strict match for now, but if 'kimchi' items exist they won't show under 'fridge'.
+          // However, standard Fridge is usually type 'default' or undefined?
+          // AddItem: default return is gray color.
+          // Let's check fridge types in DB...
+          // Safe bet: If selected 'fridge', match 'fridge' OR 'kimchi' OR undefined/default?
+          matchesStorage = selectedFilters.storage.some(type => {
+             if (type === 'fridge') return fType === 'fridge' || fType === 'kimchi' || !fType || fType === 'default'; // Broaden 'fridge'
+             return fType === type;
+          });
+      }
+
+      // 3. Category Filter (OR logic within category)
+      let matchesCategory = true;
+      if (selectedFilters.category.length > 0) {
+          matchesCategory = selectedFilters.category.includes(item.foodCategory);
+      }
+
+      return matchesSearch && matchesStatus && matchesStorage && matchesCategory;
+  });
+
+  const toggleFilter = (type, value) => {
+    setSelectedFilters(prev => {
+        const currentList = prev[type];
+        const newList = currentList.includes(value)
+            ? currentList.filter(item => item !== value)
+            : [...currentList, value];
+        return { ...prev, [type]: newList };
+    });
+  };
+
+  const isSelected = (type, value) => selectedFilters[type].includes(value);
 
   return (
     <div className="flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark pb-20">
@@ -97,36 +206,82 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="w-full overflow-x-auto scrollbar-hide py-3 pl-4">
-        <div className="flex gap-2 pr-4">
-            {[
-                { id: 'all', label: '전체' },
-                { id: 'expiring', label: '소비기한 임박' },
-                { id: 'fridge', label: '냉장실' },
-                { id: 'freezer', label: '냉동실' },
-                { id: 'pantry', label: '실온' }
-            ].map(filter => (
-                <button 
-                    key={filter.id}
-                    onClick={() => setActiveFilter(filter.id)}
-                    className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 transition-all
-                        ${activeFilter === filter.id 
-                            ? 'bg-primary text-white shadow-md shadow-primary/30 font-bold' 
-                            : 'bg-white dark:bg-surface-dark border border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                >
-                    <p className="text-sm leading-normal">{filter.label}</p>
-                </button>
-            ))}
-        </div>
+      {/* Filters Section */}
+      <div className="flex flex-col gap-3 px-4 py-2">
+
+          {/* Row 1: Status */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <span className="text-xs font-bold text-gray-400 shrink-0 w-12">상태</span>
+              <div className="flex gap-2">
+                  {STATUS_OPTIONS.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => toggleFilter('status', opt.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border
+                            ${isSelected('status', opt.id)
+                                ? 'bg-primary text-white border-primary shadow-sm'
+                                : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                            }`}
+                      >
+                          {opt.label}
+                      </button>
+                  ))}
+              </div>
+          </div>
+
+          {/* Row 2: Storage */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <span className="text-xs font-bold text-gray-400 shrink-0 w-12">보관</span>
+              <div className="flex gap-2">
+                  {STORAGE_OPTIONS.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => toggleFilter('storage', opt.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border
+                            ${isSelected('storage', opt.id)
+                                ? 'bg-primary text-white border-primary shadow-sm'
+                                : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                            }`}
+                      >
+                          {opt.label}
+                      </button>
+                  ))}
+              </div>
+          </div>
+
+          {/* Row 3: Category (Top 5) */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <span className="text-xs font-bold text-gray-400 shrink-0 w-12">카테고리</span>
+              <div className="flex gap-2">
+                  {topCategories.length > 0 ? topCategories.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => toggleFilter('category', cat.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border
+                            ${isSelected('category', cat.id)
+                                ? 'bg-primary text-white border-primary shadow-sm'
+                                : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                            }`}
+                      >
+                          {cat.label}
+                      </button>
+                  )) : (
+                      <span className="text-xs text-gray-400 py-1.5">등록된 음식 없음</span>
+                  )}
+              </div>
+          </div>
       </div>
 
       {/* Results or Recent */}
       <div className="flex-1 flex flex-col pt-2 px-4">
           
-          {!searchTerm && activeFilter === 'all' ? (
+          {/* Show Recent Searches only if NO filters and NO search term */}
+          {!searchTerm &&
+           selectedFilters.status.length === 0 &&
+           selectedFilters.storage.length === 0 &&
+           selectedFilters.category.length === 0 ? (
               // Recent Searches State
-              <div className="mt-2">
+              <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">
                     <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">최근 검색어</h4>
                     <button className="text-xs text-slate-400 underline" onClick={() => setRecentSearches([])}>지우기</button>

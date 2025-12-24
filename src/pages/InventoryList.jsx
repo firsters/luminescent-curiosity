@@ -65,22 +65,28 @@ export default function InventoryList() {
       return { text: `여유`, color: 'text-[#0e1b12] dark:text-white font-bold' }; // Different style for safe items
   };
 
+  // Base items for stats (filtered by fridge if applicable)
+  const statBaseItems = useMemo(() => {
+      if (!fridgeId) return items;
+      return items.filter(i => i.fridgeId === fridgeId);
+  }, [items, fridgeId]);
+
   // Stats for the 3 Cards
-  const safeCount = items.filter(i => {
+  const safeCount = statBaseItems.filter(i => {
       if (i.status !== 'available') return false;
       if (!i.expiryDate) return true;
       const days = getDaysUntilExpiry(i.expiryDate);
       return days > 3;
   }).length;
 
-  const expiringCount = items.filter(i => {
+  const expiringCount = statBaseItems.filter(i => {
       if (i.status !== 'available') return false;
       if (!i.expiryDate) return false;
       const days = getDaysUntilExpiry(i.expiryDate);
       return days >= 0 && days <= 3;
   }).length;
 
-  const expiredCount = items.filter(i => {
+  const expiredCount = statBaseItems.filter(i => {
       if (i.status !== 'available') return false;
       if (!i.expiryDate) return false;
       const days = getDaysUntilExpiry(i.expiryDate);

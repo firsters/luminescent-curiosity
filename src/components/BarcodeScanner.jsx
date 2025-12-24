@@ -42,7 +42,7 @@ export default function BarcodeScanner({ onResult, onClose }) {
 
       {/* 2. Overlay Centered */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="relative w-64 h-64 rounded-3xl border-2 border-white/50 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] overflow-hidden">
+        <div className="relative w-80 h-80 rounded-3xl border-2 border-white/50 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] overflow-hidden">
           {/* Scanning Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-[scan_2s_infinite]" />
 

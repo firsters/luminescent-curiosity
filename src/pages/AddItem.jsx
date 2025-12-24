@@ -179,9 +179,22 @@ export default function AddItem() {
         }
         alert(`제품을 찾았습니다: ${product.name}`);
       } else {
-        alert(
-          `정보를 찾을 수 없습니다.\n(스캔된 번호: ${barcode})\n\n직접 입력해 주세요.`
-        );
+        // Product Not Found -> PROMPT Manual Entry
+        if (
+          confirm(
+            `제품 정보를 찾을 수 없습니다.\n(바코드: ${barcode})\n\n직접 등록하시겠습니까?`
+          )
+        ) {
+          // User wants to register manually
+          // Barcode is already set in formData via setFormData above
+          // Just ensure we are ready for input
+          // potentially focus the name input if we had a ref, but simple state update is enough
+        } else {
+          // User cancelled, maybe scanned wrong item?
+          // Do we reopen scanner? Or just stay on form?
+          // Current behavior: Scanner closed (setScanning(false) called at start)
+          // Stays on form with barcode filled. This is fine.
+        }
       }
     } catch {
       // ignore

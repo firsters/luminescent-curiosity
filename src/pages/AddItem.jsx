@@ -179,7 +179,9 @@ export default function AddItem() {
         }
         alert(`제품을 찾았습니다: ${product.name}`);
       } else {
-        alert("정보를 찾을 수 없습니다. 직접 입력해 주세요.");
+        alert(
+          `정보를 찾을 수 없습니다.\n(스캔된 번호: ${barcode})\n\n직접 입력해 주세요.`
+        );
       }
     } catch {
       // ignore

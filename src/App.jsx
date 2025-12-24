@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { InventoryProvider } from './context/InventoryContext';
 import { FridgeProvider } from './context/FridgeContext';
+import { InstallProvider } from './context/InstallContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import FridgeList from './pages/FridgeList';
@@ -27,13 +28,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <ReloadPrompt />
-      <AuthProvider>
-        <FridgeProvider>
-          <InventoryProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              
-              <Route path="/" element={
+      <InstallProvider>
+        <AuthProvider>
+          <FridgeProvider>
+            <InventoryProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+
+                <Route path="/" element={
                 <ProtectedRoute>
                   <Layout>
                     <FridgeList />
@@ -79,12 +81,13 @@ export default function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/test-fridge-list" element={<TestFridgeList />} />
+                <Route path="/test-fridge-list" element={<TestFridgeList />} />
 
-            </Routes>
-          </InventoryProvider>
-        </FridgeProvider>
-      </AuthProvider>
+              </Routes>
+            </InventoryProvider>
+          </FridgeProvider>
+        </AuthProvider>
+      </InstallProvider>
     </BrowserRouter>
   );
 }

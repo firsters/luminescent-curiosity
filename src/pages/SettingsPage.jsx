@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useInstallPrompt } from '../context/InstallContext';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function SettingsPage() {
   const [joinError, setJoinError] = useState('');
 
   // Install Prompt State
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const { deferredPrompt, clearPrompt, isIos, isStandalone } = useInstallPrompt();
 
   // Data Management Modal State
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
@@ -34,21 +35,12 @@ export default function SettingsPage() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`User response to the install prompt: ${outcome}`);
-    setDeferredPrompt(null);
+    clearPrompt();
   };
 
   const handleJoinFamily = async () => {
@@ -344,6 +336,7 @@ export default function SettingsPage() {
         <section className="mt-6">
             <h3 className="px-2 pb-2 text-sm font-bold text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider">앱 정보</h3>
             <div className="overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm divide-y divide-gray-100 dark:divide-gray-800">
+                {/* 1. Install Button */}
                 {deferredPrompt && (
                     <button onClick={handleInstallClick} className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left">
                         <div className="flex items-center gap-3">
@@ -357,6 +350,31 @@ export default function SettingsPage() {
                         </div>
                         <span className="material-symbols-outlined text-gray-400">chevron_right</span>
                     </button>
+                )}
+
+                {/* 2. Manual Install Instructions (Shown when button is hidden and NOT standalone) */}
+                {!deferredPrompt && !isStandalone && (
+                     <div className="p-4 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-gray-800">
+                         <div className="flex items-start gap-3">
+                             <span className="material-symbols-outlined text-gray-400 mt-0.5 text-lg">help</span>
+                             <div className="flex flex-col gap-1">
+                                 <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">앱 설치 방법 안내</span>
+                                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                     {isIos ? (
+                                         <>
+                                             Safari 브라우저 하단의 <strong>공유</strong> 버튼 <span className="inline-flex align-middle material-symbols-outlined text-[14px]">ios_share</span> 을 누르고<br/>
+                                             <strong>'홈 화면에 추가'</strong>를 선택해주세요.
+                                         </>
+                                     ) : (
+                                         <>
+                                             브라우저 메뉴 <span className="inline-flex align-middle material-symbols-outlined text-[14px]">more_vert</span> 에서<br/>
+                                             <strong>'앱 설치'</strong> 또는 <strong>'홈 화면에 추가'</strong>를 선택해주세요.
+                                         </>
+                                     )}
+                                 </p>
+                             </div>
+                         </div>
+                     </div>
                 )}
 
                 <div className="p-4 flex items-center justify-between">

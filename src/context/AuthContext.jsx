@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Failed to send verification email:", error);
       // We don't block account creation if email fails, but user will be stuck at verify screen
+      alert("인증 메일 전송 실패: " + error.message);
     }
 
     // Create User Document in Firestore

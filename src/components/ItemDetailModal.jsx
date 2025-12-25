@@ -30,7 +30,7 @@ export default function ItemDetailModal({
             <img
               src={item.photoUrl}
               alt={item.name || "Food Item"}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">

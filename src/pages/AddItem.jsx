@@ -153,7 +153,7 @@ export default function AddItem() {
         setIsAnalyzing(true);
         // setLoading(true);
 
-        const compressedFile = await compressImage(file, 800, 0.7);
+        const compressedFile = await compressImage(file, 600, 0.6);
         setImageFile(compressedFile);
         setImagePreview(URL.createObjectURL(compressedFile));
 

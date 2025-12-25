@@ -1,71 +1,204 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [isSignup, setIsSignup] = useState(false);
-  const [error, setError] = useState('');
-  const { login, signup } = useAuth();
+  const [isReset, setIsReset] = useState(false); // Toggle for password reset
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState(""); // Success message
+  const { login, signup, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+    setMessage("");
+
     try {
-      if (isSignup) {
-        await signup(email, password);
+      if (isReset) {
+        await resetPassword(email);
+        setMessage("Check your inbox for further instructions");
+      } else if (isSignup) {
+        await signup(email, password, name);
+        navigate("/");
       } else {
         await login(email, password);
+        navigate("/");
       }
-      navigate('/');
     } catch (err) {
-      setError('Failed to ' + (isSignup ? 'sign up' : 'login') + ': ' + err.message);
+      setError(
+        "Failed to " +
+          (isReset ? "reset password" : isSignup ? "sign up" : "login") +
+          ": " +
+          err.message
+      );
     }
   }
 
+  // Toggle modes helper
+  const toggleMode = (mode) => {
+    setError("");
+    setMessage("");
+    if (mode === "reset") {
+      setIsReset(true);
+      setIsSignup(false);
+    } else if (mode === "signup") {
+      setIsReset(false);
+      setIsSignup(true);
+    } else {
+      // Login
+      setIsReset(false);
+      setIsSignup(false);
+    }
+  };
+
   return (
-    <div className="container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100vh', gap: '20px' }}>
-      <h2 style={{ textAlign: 'center', color: 'var(--primary)' }}>Fridgy Login</h2>
-      {error && <div style={{ background: '#ffebee', color: 'var(--danger)', padding: '10px', borderRadius: '8px' }}>{error}</div>}
-      
-      <form onSubmit={handleSubmit} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div>
-          <label>Email</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', marginTop: '5px' }}
-          />
+    <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
+      {/* Hero Image Section */}
+      <div className="relative h-[35vh] w-full shrink-0 overflow-hidden bg-primary/10">
+        <img
+          src="/src/assets/login_bg.png"
+          alt="Fresh Fridge"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background-light dark:to-background-dark/90"></div>
+      </div>
+
+      {/* Main Content Card - Overlaps image */}
+      <div className="flex flex-1 flex-col items-center px-6 -mt-10 relative z-10 w-full max-w-md mx-auto">
+        <div className="w-full rounded-3xl bg-surface-light dark:bg-surface-dark shadow-xl p-8 border border-white/20 backdrop-blur-sm">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              {isReset ? "비밀번호 찾기" : "Fridgy"}
+            </h1>
+            <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
+              {isReset
+                ? "가입하신 이메일로 재설정 링크를 보내드립니다."
+                : isSignup
+                ? "나만의 스마트한 냉장고 관리를 시작해보세요."
+                : "냉장고 속 신선함을 관리하세요."}
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">error</span>
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-6 rounded-xl bg-green-50 dark:bg-green-900/20 p-4 text-sm text-green-700 dark:text-green-300 border border-green-100 dark:border-green-900/30 flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">
+                check_circle
+              </span>
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {isSignup && !isReset && (
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+                  이름
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="홍길동"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+                이메일
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="example@email.com"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
+              />
+            </div>
+
+            {!isReset && (
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+                  비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="mt-2 w-full rounded-xl bg-primary py-3.5 text-base font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary-dark active:scale-98"
+            >
+              {isReset
+                ? "재설정 메일 보내기"
+                : isSignup
+                ? "회원가입"
+                : "로그인"}
+            </button>
+          </form>
+
+          {!isReset && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => toggleMode("reset")}
+                className="text-sm font-medium text-text-sub-light dark:text-text-sub-dark hover:text-primary dark:hover:text-primary transition-colors"
+              >
+                비밀번호를 잊으셨나요?
+              </button>
+            </div>
+          )}
         </div>
-        <div>
-          <label>Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', marginTop: '5px' }}
-          />
+
+        <div className="mt-8 text-center">
+          <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
+            {isReset ? (
+              <>
+                비밀번호가 기억나시나요?{" "}
+                <button
+                  onClick={() => toggleMode("login")}
+                  className="font-bold text-primary hover:underline ml-1"
+                >
+                  로그인하기
+                </button>
+              </>
+            ) : (
+              <>
+                {isSignup
+                  ? "이미 계정이 있으신가요?"
+                  : "아직 계정이 없으신가요?"}{" "}
+                <button
+                  onClick={() => toggleMode(isSignup ? "login" : "signup")}
+                  className="font-bold text-primary hover:underline ml-1"
+                >
+                  {isSignup ? "로그인" : "회원가입"}
+                </button>
+              </>
+            )}
+          </p>
         </div>
-        <button type="submit" className="btn">
-          {isSignup ? 'Sign Up' : 'Login'}
-        </button>
-      </form>
-      
-      <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-        {isSignup ? 'Already have an account?' : 'Need an account?'}
-        <button 
-          onClick={() => setIsSignup(!isSignup)} 
-          style={{ background: 'none', color: 'var(--primary)', fontWeight: 'bold', marginLeft: '5px' }}
-        >
-          {isSignup ? 'Login' : 'Sign Up'}
-        </button>
-      </p>
+      </div>
     </div>
   );
 }

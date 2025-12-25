@@ -253,15 +253,20 @@ export default function FridgeList() {
                           !isEditMode && "group-hover:scale-110"
                         }`}
                         style={{
-                          backgroundImage: `url('${
-                            fridge.type === "kimchi"
-                              ? "/images/kimchi-fridge.png"
-                              : fridge.type === "freezer"
-                              ? "/images/freezer.png"
-                              : fridge.type === "pantry"
-                              ? "/images/pantry.png"
-                              : "/images/fridge.png"
-                          }')`,
+                          backgroundImage: `url('/images/${fridge.type}_${
+                            // Get index of this fridge in the filtered list (or fallback to logic)
+                            // A simple deterministic way: Parse int from ID if possible, or use string hash
+                            // For this simple app, we can just use the index from the map if we want, OR
+                            // use a simple hash of the ID to keep it consistent per fridge.
+                            (fridge.id
+                              .split("")
+                              .reduce(
+                                (acc, char) => acc + char.charCodeAt(0),
+                                0
+                              ) %
+                              3) +
+                            1
+                          }.png')`,
                         }}
                       ></div>
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>

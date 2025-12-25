@@ -8,8 +8,11 @@ import {
   updateProfile,
   sendEmailVerification,
   sendPasswordResetEmail,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export const AuthContext = createContext();
 
@@ -89,6 +92,28 @@ export function AuthProvider({ children }) {
     setFamilyId(newFamilyId);
   }
 
+  // Function to delete the user account
+  async function deleteAccount(password) {
+    if (!currentUser) return;
+
+    // 1. Re-authenticate
+    const credential = EmailAuthProvider.credential(
+      currentUser.email,
+      password
+    );
+    await reauthenticateWithCredential(currentUser, credential);
+
+    // 2. Delete User Data from Firestore
+    // Note: This logic might need to be expanded if we want to delete ALL inventory items associated with this user
+    // or if we want to handle 'family' deletion logic. For now, strictly deleting the user profile.
+    await deleteDoc(doc(db, "users", currentUser.uid));
+
+    // 3. Delete Auth User
+    await deleteUser(currentUser);
+
+    setFamilyId(null);
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -139,6 +164,7 @@ export function AuthProvider({ children }) {
     resetPassword,
     resendVerificationEmail,
     joinFamily,
+    deleteAccount,
   };
 
   return (

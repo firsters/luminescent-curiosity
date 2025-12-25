@@ -106,12 +106,6 @@ export default function SearchPage() {
 
   // Filter Logic
   const filteredItems = items.filter(item => {
-      // 0. Search Term
-      if (!searchTerm &&
-          selectedFilters.status.length === 0 &&
-          selectedFilters.storage.length === 0 &&
-          selectedFilters.category.length === 0) return false; // Default: show nothing or recent? Original code: show nothing if !searchTerm && activeFilter === 'all'
-
       const matchesSearch = !searchTerm || item.name.toLowerCase().includes(searchTerm.toLowerCase());
 
       // 1. Status Filter (OR logic within status)
@@ -275,13 +269,9 @@ export default function SearchPage() {
       {/* Results or Recent */}
       <div className="flex-1 flex flex-col pt-2 px-4">
           
-          {/* Show Recent Searches only if NO filters and NO search term */}
-          {!searchTerm &&
-           selectedFilters.status.length === 0 &&
-           selectedFilters.storage.length === 0 &&
-           selectedFilters.category.length === 0 ? (
-              // Recent Searches State
-              <div className="mt-4">
+          {/* Recent Searches: Only show if NO search term */}
+          {!searchTerm && (
+              <div className="mt-4 mb-6">
                 <div className="flex justify-between items-center mb-3">
                     <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">최근 검색어</h4>
                     <button className="text-xs text-slate-400 underline" onClick={() => setRecentSearches([])}>지우기</button>
@@ -296,34 +286,32 @@ export default function SearchPage() {
                     {recentSearches.length === 0 && <span className="text-sm text-gray-400">최근 검색 내역이 없습니다.</span>}
                 </div>
               </div>
-          ) : (
-              // Results State
-              <>
-                <div className="flex items-center justify-between pb-3 pt-2">
-                    <h3 className="text-lg font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
-                        검색 결과 <span className="text-primary ml-1">{filteredItems.length}</span>
-                    </h3>
-                </div>
-                
-                <div className="flex flex-col gap-3 pb-20">
-                    {filteredItems.map(item => (
-                        <ItemCard
-                            key={item.id}
-                            item={item}
-                            fridgeName={getStorageName(item)}
-                            onClick={() => setSelectedItem(item)}
-                            onConsume={consumeItem}
-                        />
-                    ))}
-                    
-                    {filteredItems.length === 0 && (
-                        <div className="py-10 text-center text-gray-400">
-                            검색 결과가 없습니다.
-                        </div>
-                    )}
-                </div>
-              </>
           )}
+
+          {/* Results State - Always visible */}
+          <div className="flex items-center justify-between pb-3 pt-2">
+              <h3 className="text-lg font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
+                  검색 결과 <span className="text-primary ml-1">{filteredItems.length}</span>
+              </h3>
+          </div>
+
+          <div className="flex flex-col gap-3 pb-20">
+              {filteredItems.map(item => (
+                  <ItemCard
+                      key={item.id}
+                      item={item}
+                      fridgeName={getStorageName(item)}
+                      onClick={() => setSelectedItem(item)}
+                      onConsume={consumeItem}
+                  />
+              ))}
+
+              {filteredItems.length === 0 && (
+                  <div className="py-10 text-center text-gray-400">
+                      검색 결과가 없습니다.
+                  </div>
+              )}
+          </div>
 
       </div>
 

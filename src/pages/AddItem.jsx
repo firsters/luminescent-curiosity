@@ -8,6 +8,8 @@ import BarcodeScanner from "../components/BarcodeScanner";
 import { compressImage } from "../lib/imageCompression";
 import { safeDateToIso, parseLocal } from "../lib/dateUtils";
 
+import { analyzeFoodImage } from "../lib/gemini";
+
 export default function AddItem() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -150,9 +152,22 @@ export default function AddItem() {
         const compressedFile = await compressImage(file, 800, 0.7); // Resize to max 800px width, 0.7 quality
         setImageFile(compressedFile);
         setImagePreview(URL.createObjectURL(compressedFile));
-        // console.log(`Original: ${file.size}, Compressed: ${compressedFile.size}`);
+
+        // AI Analysis
+        const aiResult = await analyzeFoodImage(compressedFile);
+        if (aiResult) {
+          setFormData((prev) => ({
+            ...prev,
+            name: aiResult.name || prev.name,
+            foodCategory: aiResult.category || prev.foodCategory,
+            expiryDate: aiResult.expiryDate || prev.expiryDate,
+          }));
+          alert(
+            `AI가 제품을 분석했습니다:\n${aiResult.name}\n(${aiResult.category})`
+          );
+        }
       } catch (error) {
-        console.error("Compression failed:", error);
+        console.error("Image processing/AI failed:", error);
         alert("이미지 처리 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);

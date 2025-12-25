@@ -144,12 +144,16 @@ export default function AddItem() {
     setFormData((prev) => ({ ...prev, foodCategory: newId }));
   };
 
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       try {
-        setLoading(true); // Show loading state while compressing
-        const compressedFile = await compressImage(file, 800, 0.7); // Resize to max 800px width, 0.7 quality
+        setIsAnalyzing(true);
+        // setLoading(true);
+
+        const compressedFile = await compressImage(file, 800, 0.7);
         setImageFile(compressedFile);
         setImagePreview(URL.createObjectURL(compressedFile));
 
@@ -163,13 +167,17 @@ export default function AddItem() {
             expiryDate: aiResult.expiryDate || prev.expiryDate,
           }));
           alert(
-            `AI가 제품을 분석했습니다:\n${aiResult.name}\n(${aiResult.category})`
+            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
           );
+        } else {
+          // Null result
+          alert("AI 분석에 실패했습니다. (API 키 확인 필요)");
         }
       } catch (error) {
         console.error("Image processing/AI failed:", error);
         alert("이미지 처리 중 오류가 발생했습니다.");
       } finally {
+        setIsAnalyzing(false);
         setLoading(false);
       }
     }
@@ -396,6 +404,16 @@ export default function AddItem() {
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
+              {/* AI Analysis Overlay */}
+              {isAnalyzing && (
+                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white z-10 backdrop-blur-sm animate-pulse">
+                  <span className="material-symbols-outlined text-4xl animate-spin mb-2">
+                    autorenew
+                  </span>
+                  <span className="font-bold text-lg">AI 분석 중...</span>
+                </div>
+              )}
+
               <button
                 onClick={() => cameraInputRef.current?.click()}
                 className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white font-bold"

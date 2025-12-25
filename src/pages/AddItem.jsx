@@ -623,22 +623,42 @@ export default function AddItem() {
               {/* Quantity Input */}
               <div className="flex-1 flex items-center gap-2">
                 <span className="text-sm font-bold text-gray-500">x</span>
-                <div className="relative flex-1">
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        quantity: Math.max(1, Number(e.target.value)),
-                      })
-                    }
-                    className="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-center font-bold"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                    개
-                  </span>
+                <div className="flex items-center gap-1 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-1 w-full">
+                  <button
+                    type="button"
+                    onClick={() => handleQuantity(-1)}
+                    className="size-10 flex items-center justify-center rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all text-gray-600 dark:text-gray-400"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      remove
+                    </span>
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          quantity: Math.max(1, Number(e.target.value)),
+                        })
+                      }
+                      className="w-full bg-transparent p-2 text-base focus:outline-none text-center font-bold"
+                    />
+                    <span className="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                      개
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleQuantity(1)}
+                    className="size-10 flex items-center justify-center rounded-lg bg-primary/10 hover:bg-primary/20 text-primary active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      add
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>

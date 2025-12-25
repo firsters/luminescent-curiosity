@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useInventory } from "../context/InventoryContext";
-import { useRegisterSW } from "virtual:pwa-register/react";
+
 import { useInstallPrompt } from "../context/InstallContext";
 
 export default function SettingsPage() {
@@ -235,11 +235,8 @@ export default function SettingsPage() {
     }
   };
 
-  // PWA Update Logic
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW();
+  // PWA Update Logic (Consumed from Context)
+  const { needRefresh, updateServiceWorker } = useInstallPrompt();
 
   const handleCheckUpdate = async () => {
     if ("serviceWorker" in navigator) {

@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 const InstallContext = createContext();
 
@@ -11,6 +12,20 @@ export function InstallProvider({ children }) {
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
+  // PWA Update Logic (Centralized)
+  const {
+    offlineReady: [offlineReady, setOfflineReady],
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      console.log("SW Registered: " + r);
+    },
+    onRegisterError(error) {
+      console.log("SW registration error", error);
+    },
+  });
+
   useEffect(() => {
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -18,8 +33,9 @@ export function InstallProvider({ children }) {
     setIsIos(ios);
 
     // Detect Standalone (already installed)
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
-                               window.navigator.standalone === true;
+    const isInStandaloneMode =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
     setIsStandalone(isInStandaloneMode);
 
     // Capture install prompt
@@ -28,28 +44,32 @@ export function InstallProvider({ children }) {
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
-      console.log('beforeinstallprompt captured in InstallContext');
+      console.log("beforeinstallprompt captured in InstallContext");
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener("beforeinstallprompt", handler);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const clearPrompt = () => {
-      setDeferredPrompt(null);
+    setDeferredPrompt(null);
   };
 
   const value = {
     deferredPrompt,
     clearPrompt,
     isIos,
-    isStandalone
+    isStandalone,
+    // PWA Update State
+    offlineReady,
+    needRefresh,
+    updateServiceWorker,
+    setOfflineReady,
+    setNeedRefresh,
   };
 
   return (
-    <InstallContext.Provider value={value}>
-      {children}
-    </InstallContext.Provider>
+    <InstallContext.Provider value={value}>{children}</InstallContext.Provider>
   );
 }

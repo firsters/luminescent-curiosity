@@ -1,19 +1,14 @@
-import React from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import React from "react";
+import { useInstallPrompt } from "../context/InstallContext";
 
 function ReloadPrompt() {
   const {
-    offlineReady: [offlineReady, setOfflineReady],
-    needRefresh: [needRefresh, setNeedRefresh],
+    offlineReady,
+    needRefresh,
     updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      console.log('SW Registered: ' + r);
-    },
-    onRegisterError(error) {
-      console.log('SW registration error', error);
-    },
-  });
+    setOfflineReady,
+    setNeedRefresh,
+  } = useInstallPrompt();
 
   const close = () => {
     setOfflineReady(false);
@@ -35,7 +30,7 @@ function ReloadPrompt() {
           )}
         </div>
         <div className="flex gap-2 justify-end">
-            {needRefresh && (
+          {needRefresh && (
             <button
               className="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors"
               onClick={() => updateServiceWorker(true)}

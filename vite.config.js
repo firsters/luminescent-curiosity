@@ -39,7 +39,7 @@ export default defineConfig({
         theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
-        orientation: "any",
+        // orientation: "any", // Let device decide naturally
         start_url: "/",
         icons: [
           {

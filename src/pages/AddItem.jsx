@@ -310,7 +310,7 @@ export default function AddItem() {
       <div className="flex-1 overflow-y-auto pb-4">
         {/* Input Methods Grid - Only show in Add Mode */}
         {!isEditMode && (
-          <div className="grid grid-cols-3 gap-2 p-4">
+          <div className="grid grid-cols-2 gap-2 p-4">
             <button
               onClick={() => cameraInputRef.current?.click()}
               className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"

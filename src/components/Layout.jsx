@@ -1,13 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
+import PullToRefresh from "./PullToRefresh";
 
 export default function Layout({ children }) {
   // Stitch designs have specific header per page, so Layout mainly handles the shell and bottom nav.
-  // We'll wrap children in a safe-area container.
+
+  const handleRefresh = async () => {
+    // Simulate data refresh
+    // Since we use onSnapshot, data is already real-time.
+    // This is mostly for UX or if we restart listeners in the future.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  };
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
       {/* Main Content Area */}
-      {children}
+      <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
 
       {/* Bottom Navigation (Stitch Design) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-surface-light pb-safe pt-2 dark:border-white/5 dark:bg-background-dark px-2">

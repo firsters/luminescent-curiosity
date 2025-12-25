@@ -248,7 +248,10 @@ export default function SettingsPage() {
         await registration.update();
         // If an update is found, 'needRefresh' should eventually become true
         // or the ReloadPrompt will show up.
-        if (!needRefresh) {
+        if (registration.installing || registration.waiting) {
+          // Update found! Do nothing, UI will reflect this via needRefresh or ReloadPrompt
+          console.log("Update found, skipping alert.");
+        } else {
           alert("현재 최신 버전을 사용 중입니다.");
         }
       } catch (e) {

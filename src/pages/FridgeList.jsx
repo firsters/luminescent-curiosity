@@ -247,14 +247,21 @@ export default function FridgeList() {
                 const CardContent = (
                   <>
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                      {/* Visual with Unsplash Placeholder based on type? Or just generic */}
+                      {/* Visual Image */}
                       <div
                         className={`absolute inset-0 bg-cover bg-center transition-transform duration-500 ${
-                          !isEditMode && "group-hover:scale-105"
+                          !isEditMode && "group-hover:scale-110"
                         }`}
                         style={{
-                          backgroundImage:
-                            'url("https://images.unsplash.com/photo-1584269668383-a7732d847844?q=80&w=800&auto=format&fit=crop")',
+                          backgroundImage: `url('${
+                            fridge.type === "kimchi"
+                              ? "/images/kimchi-fridge.png"
+                              : fridge.type === "freezer"
+                              ? "/images/freezer.png"
+                              : fridge.type === "pantry"
+                              ? "/images/pantry.png"
+                              : "/images/fridge.png"
+                          }')`,
                         }}
                       ></div>
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>

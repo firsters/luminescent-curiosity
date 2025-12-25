@@ -19,9 +19,9 @@ export async function fetchProductFromMFDS(barcode) {
     console.log(`[MFDS] Fetching data for barcode: ${barcode}`);
 
     // C005 Service URL
-    // Format: http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}/{PARAM}
+    // Format: https://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}/{PARAM}
     // Param: BAR_CD (Barcode)
-    const url = `http://openapi.foodsafetykorea.go.kr/api/${MFDS_API_KEY}/C005/json/1/1/BAR_CD=${barcode}`;
+    const url = `https://openapi.foodsafetykorea.go.kr/api/${MFDS_API_KEY}/C005/json/1/1/BAR_CD=${barcode}`;
 
     const response = await fetch(url);
 

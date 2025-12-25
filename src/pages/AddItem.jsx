@@ -285,7 +285,8 @@ export default function AddItem() {
       navigate(
         `/inventory?fridgeId=${formData.fridgeId}&fridgeName=${
           targetFridge?.name || "냉장고"
-        }`
+        }`,
+        { replace: true }
       );
     } catch (error) {
       alert((isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message);

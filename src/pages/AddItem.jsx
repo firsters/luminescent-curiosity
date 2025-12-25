@@ -325,7 +325,7 @@ export default function AddItem() {
               </span>
             </button>
 
-            <button
+            {/* <button
               onClick={() => setScanning(true)}
               className="flex flex-col gap-3 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4 items-center justify-center shadow-sm active:scale-[0.98] transition-all hover:border-primary"
             >
@@ -337,7 +337,7 @@ export default function AddItem() {
               <span className="text-sm font-bold leading-tight whitespace-nowrap">
                 바코드 스캔
               </span>
-            </button>
+            </button> */}
 
             <button
               onClick={() => galleryInputRef.current?.click()}

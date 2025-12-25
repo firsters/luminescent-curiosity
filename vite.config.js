@@ -41,21 +41,21 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "pwa-192-v3.png",
+            src: "pwa-192x192.jpg",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/jpeg",
             purpose: "any",
           },
           {
-            src: "pwa-512-v3.png",
+            src: "pwa-512x512.jpg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/jpeg",
             purpose: "any",
           },
           {
-            src: "pwa-512-v3.png",
+            src: "pwa-512x512.jpg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/jpeg",
             purpose: "maskable",
           },
         ],

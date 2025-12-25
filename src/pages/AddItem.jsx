@@ -641,7 +641,12 @@ export default function AddItem() {
             ) : (
               <>
                 <span className="material-symbols-outlined">kitchen</span>
-                {isEditMode ? "수정 완료" : "냉장고에 넣기"}
+                {isEditMode
+                  ? "수정 완료"
+                  : `${
+                      fridges.find((f) => f.id === formData.fridgeId)?.name ||
+                      "냉장고"
+                    }에 넣기`}
               </>
             )}
           </button>

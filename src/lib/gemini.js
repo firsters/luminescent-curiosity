@@ -19,7 +19,7 @@ export async function analyzeFoodImage(imageFile) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Convert file to base64
     const base64Data = await fileToGenerativePart(imageFile);

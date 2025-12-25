@@ -53,6 +53,8 @@ export default function AddItem() {
       fridgeId: "", // Selected Fridge ID
       quantity: 1,
       unit: "개",
+      capacity: "", // New: Capacity
+      capacityUnit: "g", // New: Unit
       expiryDate: todayStr,
       buyDate: todayStr,
       barcode: "",
@@ -74,6 +76,8 @@ export default function AddItem() {
         fridgeId: editModeItem.fridgeId || "",
         quantity: editModeItem.quantity || 1,
         unit: editModeItem.unit || "개",
+        capacity: editModeItem.capacity || "",
+        capacityUnit: editModeItem.capacityUnit || "g",
         expiryDate: safeDateToIso(editModeItem.expiryDate),
         buyDate: safeDateToIso(editModeItem.addedDate),
         barcode: editModeItem.barcode || "",
@@ -103,7 +107,22 @@ export default function AddItem() {
   };
 
   const handleChipChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    // Default Unit Logic based on Category
+    if (field === "foodCategory") {
+      let defaultUnit = "g";
+      if (["dairy", "drink", "sauce"].includes(value)) defaultUnit = "ml";
+      else if (["meat", "vegetable", "fruit"].includes(value))
+        defaultUnit = "g";
+      else if (["frozen", "snack"].includes(value)) defaultUnit = "g";
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        capacityUnit: defaultUnit,
+      }));
+    } else {
+      setFormData({ ...formData, [field]: value });
+    }
   };
 
   const handleQuantity = (delta) => {
@@ -266,8 +285,11 @@ export default function AddItem() {
         name: formData.name,
         fridgeId: formData.fridgeId,
         foodCategory: formData.foodCategory,
+        foodCategory: formData.foodCategory,
         quantity: Number(formData.quantity),
         unit: formData.unit,
+        capacity: formData.capacity ? Number(formData.capacity) : null,
+        capacityUnit: formData.capacityUnit,
         expiryDate: parseLocal(formData.expiryDate),
         addedDate: parseLocal(formData.buyDate),
         barcode: formData.barcode,
@@ -572,28 +594,53 @@ export default function AddItem() {
 
           {/* Quantity */}
           <div className="flex flex-col gap-2">
-            <label className="text-base font-bold">수량</label>
-            <div className="flex items-center gap-4 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-2 w-full max-w-[200px]">
-              <button
-                type="button"
-                onClick={() => handleQuantity(-1)}
-                className="size-10 flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-primary active:text-background-dark transition-colors"
-              >
-                <span className="material-symbols-outlined">remove</span>
-              </button>
-              <div className="flex-1 text-center select-none">
-                <span className="text-xl font-bold">{formData.quantity}</span>
-                <span className="text-sm text-text-sub-light ml-1">
-                  {formData.unit}
-                </span>
+            <label className="text-base font-bold">용량 / 수량</label>
+            <div className="flex gap-3">
+              {/* Capacity Input */}
+              <div className="flex-1 flex gap-1">
+                <input
+                  type="number"
+                  name="capacity"
+                  value={formData.capacity}
+                  onChange={handleChange}
+                  placeholder="용량 (선택)"
+                  className="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-right"
+                />
+                <select
+                  name="capacityUnit"
+                  value={formData.capacityUnit}
+                  onChange={handleChange}
+                  className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {["g", "ml", "kg", "L", "개"].map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <button
-                type="button"
-                onClick={() => handleQuantity(1)}
-                className="size-10 flex items-center justify-center rounded-lg bg-primary text-background-dark hover:bg-primary/90 active:scale-95 transition-colors shadow-sm"
-              >
-                <span className="material-symbols-outlined">add</span>
-              </button>
+
+              {/* Quantity Input */}
+              <div className="flex-1 flex items-center gap-2">
+                <span className="text-sm font-bold text-gray-500">x</span>
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        quantity: Math.max(1, Number(e.target.value)),
+                      })
+                    }
+                    className="w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-center font-bold"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                    개
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -117,6 +117,7 @@ export default function ItemCard({
             {item.name}
           </p>
           <p className="text-gray-500 dark:text-gray-400 text-xs font-medium whitespace-nowrap">
+            {item.capacity ? `${item.capacity}${item.capacityUnit} × ` : ""}
             {item.quantity}
             {item.unit}
           </p>

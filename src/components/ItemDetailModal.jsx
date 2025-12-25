@@ -61,7 +61,13 @@ export default function ItemDetailModal({
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-primary">
-                {item.quantity || 1} {item.unit || "개"}
+                {item.capacity ? (
+                  <span className="mr-2 text-base font-medium text-gray-500">
+                    {item.capacity}
+                    {item.capacityUnit}
+                  </span>
+                ) : null}
+                {item.quantity} {item.unit}
               </div>
             </div>
           </div>

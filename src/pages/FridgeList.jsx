@@ -56,7 +56,20 @@ export default function FridgeList() {
 
   const handleSaveFridge = async (e) => {
     e.preventDefault();
-    if (!fridgeName.trim()) return;
+    const nameToSave = fridgeName.trim();
+    if (!nameToSave) return;
+
+    // Check for duplicates
+    const isDuplicate = fridges.some((f) => {
+      // Skip current fridge if editing
+      if (modalMode === "edit" && f.id === editingId) return false;
+      return f.name.toLowerCase() === nameToSave.toLowerCase();
+    });
+
+    if (isDuplicate) {
+      alert("이미 존재하는 이름입니다. 다른 이름을 입력해주세요.");
+      return;
+    }
 
     try {
       if (modalMode === "add") {

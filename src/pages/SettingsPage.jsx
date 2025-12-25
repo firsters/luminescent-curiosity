@@ -652,6 +652,65 @@ export default function SettingsPage() {
               </div>
             )}
 
+            <Link
+              to="/terms"
+              className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                  <span className="material-symbols-outlined">gavel</span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">
+                    이용약관
+                  </span>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-gray-400">
+                chevron_right
+              </span>
+            </Link>
+
+            <Link
+              to="/privacy"
+              className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                  <span className="material-symbols-outlined">
+                    policy
+                  </span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">
+                    개인정보처리방침
+                  </span>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-gray-400">
+                chevron_right
+              </span>
+            </Link>
+
+            <Link
+              to="/licenses"
+              className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                  <span className="material-symbols-outlined">code</span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">
+                    오픈소스 라이선스
+                  </span>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-gray-400">
+                chevron_right
+              </span>
+            </Link>
+
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">

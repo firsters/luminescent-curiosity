@@ -12,6 +12,9 @@ import SearchPage from "./pages/SearchPage";
 import HistoryPage from "./pages/HistoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import TestFridgeList from "./pages/TestFridgeList";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import LicensesPage from "./pages/LicensesPage";
 import { Link } from "react-router-dom";
 import ReloadPrompt from "./components/ReloadPrompt";
 
@@ -75,6 +78,9 @@ export default function App() {
             <InventoryProvider>
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/licenses" element={<LicensesPage />} />
 
                 <Route
                   path="/"

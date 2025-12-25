@@ -9,6 +9,7 @@ import { compressImage } from "../lib/imageCompression";
 import { safeDateToIso, parseLocal } from "../lib/dateUtils";
 
 import { analyzeFoodImage } from "../lib/gemini";
+import { removeBackground, cropTransparent } from "../lib/imageProcessing";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -164,6 +165,29 @@ export default function AddItem() {
   };
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Background Removal Handler
+  const handleRemoveBackground = async () => {
+    if (!imageFile) return;
+    try {
+      setIsProcessing(true);
+      const transparentBlob = await removeBackground(imageFile);
+      const croppedBlob = await cropTransparent(transparentBlob);
+
+      // Update state with new image
+      setImageFile(croppedBlob);
+      setImagePreview(URL.createObjectURL(croppedBlob));
+
+      // We don't re-analyze automatically to preserve manual edits if any,
+      // but user can re-upload if they want re-analysis.
+    } catch (error) {
+      console.error("BG Removal failed:", error);
+      alert("배경 제거 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -438,12 +462,42 @@ export default function AddItem() {
                 </div>
               )}
 
-              <button
-                onClick={() => cameraInputRef.current?.click()}
-                className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white font-bold"
-              >
-                사진 변경
-              </button>
+              {/* Actions Overlay */}
+              <div className="absolute inset-0 bg-black/40 hidden group-hover:flex flex-col items-center justify-center gap-2 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cameraInputRef.current?.click();
+                  }}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white font-bold text-sm transition-colors"
+                >
+                  사진 변경
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveBackground();
+                  }}
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-primary hover:bg-primary-dark rounded-full text-white font-bold text-sm transition-colors disabled:opacity-50 flex items-center gap-1"
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="material-symbols-outlined text-sm animate-spin">
+                        autorenew
+                      </span>
+                      처리 중...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">
+                        auto_fix_high
+                      </span>
+                      배경 제거
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

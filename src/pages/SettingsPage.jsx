@@ -7,7 +7,7 @@ import { useInstallPrompt } from "../context/InstallContext";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { currentUser, logout, familyId, joinFamily } = useAuth();
+  const { currentUser, logout, familyId, joinFamily, checkLastMember } = useAuth();
   const { removeItemsByFilter } = useInventory();
 
   // Theme State
@@ -143,16 +143,26 @@ export default function SettingsPage() {
       return;
     }
 
-    if (
-      !confirm(
-        `가족 코드 [${inviteCode}] 그룹으로 이동하시겠습니까?\n기존 냉장고 데이터는 보이지 않게 됩니다.`
-      )
-    )
-      return;
-
-    setIsJoining(true);
-    setJoinError("");
     try {
+      setIsJoining(true);
+      setJoinError("");
+
+      // Check if user is the last member of the current group
+      const { isLastMember, currentFamilyId } = await checkLastMember();
+
+      // Construct confirmation message based on status
+      let message = `가족 코드 [${inviteCode}] 그룹으로 이동하시겠습니까?`;
+      if (isLastMember && currentFamilyId) {
+        message += `\n\n[주의] 현재 그룹의 마지막 멤버입니다. 이동 시 현재 그룹의 모든 데이터(냉장고, 아이템 등)가 영구적으로 삭제됩니다.`;
+      } else {
+        message += `\n기존 냉장고 데이터는 보이지 않게 됩니다.`;
+      }
+
+      if (!confirm(message)) {
+        setIsJoining(false);
+        return;
+      }
+
       await joinFamily(inviteCode);
       alert("가족 그룹이 변경되었습니다! 이제 공유된 냉장고를 볼 수 있습니다.");
       setInviteCode("");

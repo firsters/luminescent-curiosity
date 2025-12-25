@@ -98,10 +98,73 @@ export function AuthProvider({ children }) {
     return Promise.resolve(); // Do nothing if already verified or no user
   }
 
+  /**
+   * Helper: Check if current user is the last member of their family.
+   * Returns: { isLastMember: boolean, currentFamilyId: string }
+   */
+  async function checkLastMember() {
+    if (!currentUser) return { isLastMember: false, currentFamilyId: null };
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDocSnap = await getDoc(userDocRef);
+    const currentFamilyId = userDocSnap.exists() ? userDocSnap.data().familyId : null;
+
+    if (!currentFamilyId) return { isLastMember: false, currentFamilyId: null };
+
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("familyId", "==", currentFamilyId));
+    const userSnapshot = await getDocs(q);
+
+    // If size is 1 (just me) or 0 (error case), I am the last one.
+    return { isLastMember: userSnapshot.size <= 1, currentFamilyId };
+  }
+
+  /**
+   * Helper: Delete all data associated with a family ID.
+   * Used when the last member leaves or deletes account.
+   */
+  async function cleanupFamilyData(targetFamilyId) {
+    if (!targetFamilyId) return;
+
+    const batch = writeBatch(db);
+
+    // A. Delete Inventory Items
+    const inventoryRef = collection(db, "inventory");
+    const inventoryQ = query(
+      inventoryRef,
+      where("familyId", "==", targetFamilyId)
+    );
+    const inventorySnapshot = await getDocs(inventoryQ);
+    inventorySnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    // B. Delete Fridges
+    const fridgeRef = collection(db, "fridges");
+    const fridgeQ = query(fridgeRef, where("familyId", "==", targetFamilyId));
+    const fridgeSnapshot = await getDocs(fridgeQ);
+    fridgeSnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  }
+
   // Function to join another family
+  // Now supports 'force' parameter or logic to handle data cleanup
   async function joinFamily(newFamilyId) {
     if (!currentUser) return;
 
+    // 1. Check current status
+    const { isLastMember, currentFamilyId } = await checkLastMember();
+
+    // 2. If last member, clean up old family data
+    if (isLastMember && currentFamilyId && currentFamilyId !== newFamilyId) {
+       console.log("Last member leaving family. Cleaning up data...");
+       await cleanupFamilyData(currentFamilyId);
+    }
+
+    // 3. Move to new family
     await updateDoc(doc(db, "users", currentUser.uid), {
       familyId: newFamilyId,
     });
@@ -121,58 +184,26 @@ export function AuthProvider({ children }) {
 
     // 2. Check Family Status & Conditional Data Deletion
     try {
-      // Fetch authoritative user doc to get familyId
+      const { isLastMember, currentFamilyId } = await checkLastMember();
       const userDocRef = doc(db, "users", currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      const currentFamilyId = userDocSnap.exists() ? userDocSnap.data().familyId : null;
 
       if (currentFamilyId) {
-        // Check how many users are in this family
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("familyId", "==", currentFamilyId));
-        const userSnapshot = await getDocs(q);
-
-        // If this user is the LAST member (or the only one)
-        if (userSnapshot.size <= 1) {
+        if (isLastMember) {
           console.log("Last family member leaving. Deleting all shared data...");
-          const batch = writeBatch(db);
-
-          // A. Delete Inventory Items
-          const inventoryRef = collection(db, "inventory");
-          const inventoryQ = query(
-            inventoryRef,
-            where("familyId", "==", currentFamilyId)
-          );
-          const inventorySnapshot = await getDocs(inventoryQ);
-          inventorySnapshot.docs.forEach((doc) => {
-            batch.delete(doc.ref);
-          });
-
-          // B. Delete Fridges
-          const fridgeRef = collection(db, "fridges");
-          const fridgeQ = query(fridgeRef, where("familyId", "==", currentFamilyId));
-          const fridgeSnapshot = await getDocs(fridgeQ);
-          fridgeSnapshot.docs.forEach((doc) => {
-            batch.delete(doc.ref);
-          });
-
-          // C. Delete User Profile (Adding to batch for atomicity where possible, though user deletion is separate)
-          // We can delete the user doc in the batch too
-          batch.delete(userDocRef);
-
-          await batch.commit();
+          // Delete shared data first
+          await cleanupFamilyData(currentFamilyId);
+          // Then delete user doc
+          await deleteDoc(userDocRef);
         } else {
-          // Not the last member, just delete own profile
-          console.log(
-            "Leaving family group. Shared data retained for other members."
-          );
+          console.log("Leaving family group. Shared data retained for other members.");
           await deleteDoc(userDocRef);
         }
       } else {
-        // No family ID? Just delete user doc if it exists
-        if (userDocSnap.exists()) {
-            await deleteDoc(userDocRef);
-        }
+          // No family ID? Just delete user doc if it exists
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+              await deleteDoc(userDocRef);
+          }
       }
     } catch (error) {
       console.error("Error cleaning up user data:", error);
@@ -236,6 +267,7 @@ export function AuthProvider({ children }) {
     resendVerificationEmail,
     joinFamily,
     deleteAccount,
+    checkLastMember,
   };
 
   return (

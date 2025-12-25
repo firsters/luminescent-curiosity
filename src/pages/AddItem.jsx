@@ -309,7 +309,6 @@ export default function AddItem() {
         name: formData.name,
         fridgeId: formData.fridgeId,
         foodCategory: formData.foodCategory,
-        foodCategory: formData.foodCategory,
         quantity: Number(formData.quantity),
         unit: formData.unit,
         capacity: formData.capacity ? Number(formData.capacity) : null,

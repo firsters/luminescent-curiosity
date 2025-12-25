@@ -7,6 +7,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false); // New state for terms agreement
   const [isSignup, setIsSignup] = useState(false);
   const [isReset, setIsReset] = useState(false); // Toggle for password reset
   const [error, setError] = useState("");
@@ -18,6 +19,11 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setMessage("");
+
+    if (isSignup && !agreedToTerms) {
+      setError("이용약관 및 개인정보처리방침에 동의해야 합니다.");
+      return;
+    }
 
     try {
       if (isReset) {
@@ -145,6 +151,41 @@ export default function Login() {
                   placeholder="••••••••"
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
                 />
+              </div>
+            )}
+
+            {isSignup && !isReset && (
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-xs text-text-sub-light dark:text-text-sub-dark leading-normal"
+                >
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    (필수) 이용약관
+                  </a>{" "}
+                  및{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    (필수) 개인정보처리방침
+                  </a>
+                  에 동의합니다.
+                </label>
               </div>
             )}
 

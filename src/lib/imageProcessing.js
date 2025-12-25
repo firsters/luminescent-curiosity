@@ -1,4 +1,4 @@
-import imglyRemoveBackground from "@imgly/background-removal";
+import { removeBackground as imglyRemoveBackground } from "@imgly/background-removal";
 
 /**
  * Removes the background from an image file/blob.

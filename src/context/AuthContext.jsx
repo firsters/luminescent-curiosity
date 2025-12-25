@@ -46,7 +46,11 @@ export function AuthProvider({ children }) {
 
     // Send Verification Email
     try {
-      await sendEmailVerification(user);
+      // Force reload user to ensure latest state (token, etc.) is verified
+      // and use auth.currentUser to avoid stale reference issues
+      const userForVerify = auth.currentUser || user;
+      await sendEmailVerification(userForVerify);
+      console.log("Verification email sent to:", userForVerify.email);
     } catch (error) {
       console.error("Failed to send verification email:", error);
       // We don't block account creation if email fails, but user will be stuck at verify screen

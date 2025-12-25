@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useInventory } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
-import { fetchProductFromBarcode } from "../lib/openFoodFacts";
+import { fetchProductData } from "../lib/productFetcher";
 import { uploadImage } from "../lib/storage";
 import BarcodeScanner from "../components/BarcodeScanner";
 import { compressImage } from "../lib/imageCompression";
@@ -166,7 +166,7 @@ export default function AddItem() {
     setFormData((prev) => ({ ...prev, barcode }));
 
     try {
-      const product = await fetchProductFromBarcode(barcode);
+      const product = await fetchProductData(barcode);
       if (product) {
         // Construct full name with brand if available
         const brandPrefix = product.brand ? `[${product.brand}] ` : "";

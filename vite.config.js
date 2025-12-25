@@ -15,15 +15,17 @@ const buildId = `${date.getFullYear()}${(date.getMonth() + 1)
   .toString()
   .padStart(2, "0")}${date.getMinutes().toString().padStart(2, "0")}`;
 
+const displayDate = `${date.getFullYear()}.${(date.getMonth() + 1)
+  .toString()
+  .padStart(2, "0")}.${date.getDate().toString().padStart(2, "0")}`;
+
 const version = `${major}.${minor}.${buildId}`;
-// const buildDate = ... (redundant now but keeping variable if used elsewhere, though usually buildDate was YYMMDD)
-// Let's just use the version as the main identifier.
 
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(version),
-    __BUILD_DATE__: JSON.stringify(buildId), // detailed timestamp
+    __BUILD_DATE__: JSON.stringify(displayDate),
   },
   plugins: [
     react(),

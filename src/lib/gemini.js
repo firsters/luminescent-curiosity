@@ -13,9 +13,15 @@ if (API_KEY) {
  * @returns {Promise<{name: string, category: string, expiryDate: string} | null>}
  */
 export async function analyzeFoodImage(imageFile) {
+  if (!API_KEY) {
+    console.warn("Gemini API Key is missing from env.");
+    return {
+      error:
+        "API Key가 설정되지 않았습니다. (.env 파일 확인 및 서버 재시작 필요)",
+    };
+  }
   if (!genAI) {
-    console.warn("Gemini API Key is missing.");
-    return null;
+    return { error: "Gemini 클라이언트 초기화 실패" };
   }
 
   try {
@@ -60,7 +66,7 @@ export async function analyzeFoodImage(imageFile) {
     };
   } catch (error) {
     console.error("[Gemini] Analysis failed:", error);
-    return null;
+    return { error: `분석 실패: ${error.message}` };
   }
 }
 

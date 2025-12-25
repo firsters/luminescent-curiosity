@@ -159,7 +159,9 @@ export default function AddItem() {
 
         // AI Analysis
         const aiResult = await analyzeFoodImage(compressedFile);
-        if (aiResult) {
+        if (aiResult?.error) {
+          alert(`❌ 오류 발생: ${aiResult.error}`);
+        } else if (aiResult) {
           setFormData((prev) => ({
             ...prev,
             name: aiResult.name || prev.name,
@@ -170,8 +172,7 @@ export default function AddItem() {
             `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
           );
         } else {
-          // Null result
-          alert("AI 분석에 실패했습니다. (API 키 확인 필요)");
+          alert("원인 불명의 오류가 발생했습니다.");
         }
       } catch (error) {
         console.error("Image processing/AI failed:", error);

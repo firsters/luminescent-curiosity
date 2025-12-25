@@ -12,7 +12,18 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
 
 export const AuthContext = createContext();
 
@@ -108,10 +119,65 @@ export function AuthProvider({ children }) {
     );
     await reauthenticateWithCredential(currentUser, credential);
 
-    // 2. Delete User Data from Firestore
-    // Note: This logic might need to be expanded if we want to delete ALL inventory items associated with this user
-    // or if we want to handle 'family' deletion logic. For now, strictly deleting the user profile.
-    await deleteDoc(doc(db, "users", currentUser.uid));
+    // 2. Check Family Status & Conditional Data Deletion
+    try {
+      // Fetch authoritative user doc to get familyId
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const currentFamilyId = userDocSnap.exists() ? userDocSnap.data().familyId : null;
+
+      if (currentFamilyId) {
+        // Check how many users are in this family
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("familyId", "==", currentFamilyId));
+        const userSnapshot = await getDocs(q);
+
+        // If this user is the LAST member (or the only one)
+        if (userSnapshot.size <= 1) {
+          console.log("Last family member leaving. Deleting all shared data...");
+          const batch = writeBatch(db);
+
+          // A. Delete Inventory Items
+          const inventoryRef = collection(db, "inventory");
+          const inventoryQ = query(
+            inventoryRef,
+            where("familyId", "==", currentFamilyId)
+          );
+          const inventorySnapshot = await getDocs(inventoryQ);
+          inventorySnapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+
+          // B. Delete Fridges
+          const fridgeRef = collection(db, "fridges");
+          const fridgeQ = query(fridgeRef, where("familyId", "==", currentFamilyId));
+          const fridgeSnapshot = await getDocs(fridgeQ);
+          fridgeSnapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+
+          // C. Delete User Profile (Adding to batch for atomicity where possible, though user deletion is separate)
+          // We can delete the user doc in the batch too
+          batch.delete(userDocRef);
+
+          await batch.commit();
+        } else {
+          // Not the last member, just delete own profile
+          console.log(
+            "Leaving family group. Shared data retained for other members."
+          );
+          await deleteDoc(userDocRef);
+        }
+      } else {
+        // No family ID? Just delete user doc if it exists
+        if (userDocSnap.exists()) {
+            await deleteDoc(userDocRef);
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning up user data:", error);
+      throw new Error("데이터 삭제 중 오류가 발생했습니다.");
+    }
 
     // 3. Delete Auth User
     await deleteUser(currentUser);

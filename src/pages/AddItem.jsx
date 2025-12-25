@@ -730,7 +730,7 @@ export default function AddItem() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-base font-bold">구입 날짜</label>
+              <label className="text-base font-bold">등록일</label>
               <input
                 type="date"
                 name="buyDate"

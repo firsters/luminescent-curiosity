@@ -1,4 +1,4 @@
-import { fetchProductFromOpenFoodFacts } from "./openFoodFacts";
+import { fetchProductFromBarcode } from "./openFoodFacts";
 import { fetchProductFromMFDS } from "./koreanFoodApi";
 
 /**
@@ -9,7 +9,7 @@ import { fetchProductFromMFDS } from "./koreanFoodApi";
  */
 export async function fetchProductData(barcode) {
   // 1. Try OpenFoodFacts
-  const openFoodFactsResult = await fetchProductFromOpenFoodFacts(barcode);
+  const openFoodFactsResult = await fetchProductFromBarcode(barcode);
   if (openFoodFactsResult) {
     return {
       ...openFoodFactsResult,

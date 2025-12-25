@@ -40,8 +40,6 @@ export default function SettingsPage() {
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
     useState(false);
 
-  const { deleteAccount } = useAuth(); // Destructuring inside component to avoid breaking changes if it was outside
-
   const DeleteAccountModal = ({ isOpen, onClose }) => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");

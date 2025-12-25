@@ -68,8 +68,8 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   return (
     <BrowserRouter>
-      <ReloadPrompt />
       <InstallProvider>
+        <ReloadPrompt />
         <AuthProvider>
           <FridgeProvider>
             <InventoryProvider>

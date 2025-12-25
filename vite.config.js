@@ -4,21 +4,26 @@ import { VitePWA } from "vite-plugin-pwa";
 import { readFileSync } from "fs";
 
 const packageJson = JSON.parse(readFileSync("./package.json", "utf-8"));
-const version = packageJson.version;
+const [major, minor] = packageJson.version.split(".");
 
-// Format date as YYMMDD
+// Format date as YYYYMMDDHHmm
 const date = new Date();
-const buildDate = `${date.getFullYear().toString().slice(-2)}${(
-  date.getMonth() + 1
-)
+const buildId = `${date.getFullYear()}${(date.getMonth() + 1)
   .toString()
-  .padStart(2, "0")}${date.getDate().toString().padStart(2, "0")}`;
+  .padStart(2, "0")}${date.getDate().toString().padStart(2, "0")}${date
+  .getHours()
+  .toString()
+  .padStart(2, "0")}${date.getMinutes().toString().padStart(2, "0")}`;
+
+const version = `${major}.${minor}.${buildId}`;
+// const buildDate = ... (redundant now but keeping variable if used elsewhere, though usually buildDate was YYMMDD)
+// Let's just use the version as the main identifier.
 
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(version),
-    __BUILD_DATE__: JSON.stringify(buildDate),
+    __BUILD_DATE__: JSON.stringify(buildId), // detailed timestamp
   },
   plugins: [
     react(),

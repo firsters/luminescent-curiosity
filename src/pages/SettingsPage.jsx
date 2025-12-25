@@ -350,15 +350,46 @@ export default function SettingsPage() {
                     이 코드를 가족에게 알려주세요
                   </span>
                 </div>
-                <button
-                  onClick={copyMyCode}
-                  className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    content_copy
-                  </span>
-                  복사
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyMyCode}
+                    className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      content_copy
+                    </span>
+                    코드 복사
+                  </button>
+                  <button
+                    onClick={() => {
+                      const shareData = {
+                        title: "Fridgy 가족 초대",
+                        text: `[Fridgy] 우리 가족 냉장고 관리를 시작해보세요!\n\n🔑 가족 코드: ${familyId}\n\n아래 링크에서 앱을 설치하고, 설정 > 가족 공유에서 위 코드를 입력하세요.\n`,
+                        url: window.location.origin,
+                      };
+
+                      if (navigator.share) {
+                        navigator
+                          .share(shareData)
+                          .catch((err) => console.log("Error sharing", err));
+                      } else {
+                        // Fallback
+                        navigator.clipboard.writeText(
+                          `${shareData.text}\n🔗 앱 링크: ${shareData.url}`
+                        );
+                        alert(
+                          "초대 메시지가 복사되었습니다.\n메신저에 붙여넣어 가족을 초대하세요!"
+                        );
+                      }
+                    }}
+                    className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-primary/20 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      share
+                    </span>
+                    초대장 보내기
+                  </button>
+                </div>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-black/20 rounded-xl text-center font-mono text-sm break-all text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-white/5">
                 {familyId || "로딩 중..."}

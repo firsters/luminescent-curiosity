@@ -240,12 +240,22 @@ export default function SettingsPage() {
 
   const handleCheckUpdate = async () => {
     if ("serviceWorker" in navigator) {
+      if (needRefresh) {
+        alert(
+          "이미 새로운 업데이트가 준비되어 있습니다.\n아래 '새로운 버전 업데이트' 버튼을 눌러주세요."
+        );
+        return;
+      }
+
       try {
         const registration = await navigator.serviceWorker.ready;
         await registration.update();
-        // If an update is found, 'needRefresh' should eventually become true
-        // or the ReloadPrompt will show up.
-        if (registration.installing || registration.waiting) {
+
+        // Wait a short moment for the update to trigger internal state changes
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Refetch registration to get latest state (though 'registration' object reference is usually stable, properties update)
+        if (registration.installing || registration.waiting || needRefresh) {
           // Update found! Do nothing, UI will reflect this via needRefresh or ReloadPrompt
           console.log("Update found, skipping alert.");
         } else {

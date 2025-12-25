@@ -16,7 +16,7 @@ export function InstallProvider({ children }) {
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
+    updateServiceWorker: updateSW,
   } = useRegisterSW({
     onRegistered(r) {
       console.log("SW Registered: " + r);
@@ -25,6 +25,18 @@ export function InstallProvider({ children }) {
       console.log("SW registration error", error);
     },
   });
+
+  const updateServiceWorker = async (reloadPage = true) => {
+    console.log("updateServiceWorker called, reloading:", reloadPage);
+    await updateSW(reloadPage);
+    // Failsafe: if the SW update doesn't trigger a reload within 1s, force it.
+    if (reloadPage) {
+      setTimeout(() => {
+        console.log("Forcing reload after SW update");
+        window.location.reload();
+      }, 1000);
+    }
+  };
 
   useEffect(() => {
     // Detect iOS

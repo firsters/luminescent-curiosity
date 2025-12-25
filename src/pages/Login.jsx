@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import loginBg from "../assets/login_bg.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -61,7 +62,7 @@ export default function Login() {
       {/* Hero Image Section */}
       <div className="relative h-[35vh] w-full shrink-0 overflow-hidden bg-primary/10">
         <img
-          src="/src/assets/login_bg.png"
+          src={loginBg}
           alt="Fresh Fridge"
           className="h-full w-full object-cover"
         />

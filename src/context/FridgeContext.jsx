@@ -92,7 +92,11 @@ export function FridgeProvider({ children }) {
   }
 
   async function updateFridge(id, updates) {
-    return updateDoc(doc(db, 'fridges', id), updates);
+    return updateDoc(doc(db, 'fridges', id), {
+      ...updates,
+      updatedBy: currentUser?.uid,
+      updatedAt: Timestamp.now(),
+    });
   }
 
   const value = {

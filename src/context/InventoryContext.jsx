@@ -85,7 +85,11 @@ export function InventoryProvider({ children }) {
   }
 
   async function updateItem(id, updates) {
-    const safeUpdates = { ...updates };
+    const safeUpdates = {
+      ...updates,
+      updatedBy: currentUser?.uid,
+      updatedAt: Timestamp.now(),
+    };
     if (safeUpdates.expiryDate instanceof Date) {
       safeUpdates.expiryDate = Timestamp.fromDate(safeUpdates.expiryDate);
     }
@@ -99,6 +103,8 @@ export function InventoryProvider({ children }) {
     return updateDoc(doc(db, "inventory", id), {
       status: "consumed",
       consumedDate: Timestamp.now(),
+      updatedBy: currentUser?.uid,
+      updatedAt: Timestamp.now(),
     });
   }
 

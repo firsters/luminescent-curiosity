@@ -168,16 +168,26 @@ export default function AddItem() {
     try {
       const product = await fetchProductFromBarcode(barcode);
       if (product) {
+        // Construct full name with brand if available
+        const brandPrefix = product.brand ? `[${product.brand}] ` : "";
+        const fullName = `${brandPrefix}${product.name}`;
+
         setFormData((prev) => ({
           ...prev,
-          name: product.name || prev.name,
+          name: fullName,
+          // Only update category if we have a valid mapping, otherwise keep default or user selection
+          foodCategory: product.category || prev.foodCategory,
+          // We could also try to parse quantity from product.quantity string (e.g. "500g")
+          // but units vary wildly, so keeping manual input for now.
         }));
 
         if (product.imageUrl) {
           setImageFile(null);
           setImagePreview(product.imageUrl);
         }
-        alert(`제품을 찾았습니다: ${product.name}`);
+        alert(
+          `제품을 찾았습니다:\n${fullName}\n(카테고리: ${product.category})`
+        );
       } else {
         // Product Not Found -> PROMPT Manual Entry
         if (

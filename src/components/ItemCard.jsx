@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { getDaysUntilExpiry } from "../lib/dateUtils";
 
 export default function ItemCard({
   item,
@@ -26,18 +27,6 @@ export default function ItemCard({
           "bg-white dark:bg-surface-dark border-gray-100 dark:border-white/5",
       };
     }
-
-    const getDaysUntilExpiry = (expiryDate) => {
-      if (!expiryDate) return 999;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const expiry = new Date(expiryDate);
-      expiry.setHours(0, 0, 0, 0);
-
-      const diffTime = expiry - today;
-      return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    };
 
     const days = getDaysUntilExpiry(item.expiryDate);
 

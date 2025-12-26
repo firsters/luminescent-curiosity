@@ -53,15 +53,32 @@ export const parseLocal = (dateStr) => {
 
 /**
  * Calculates days until expiry based on local midnight normalization.
+ * Returns 999 if expiryDate is invalid or missing.
  */
 export const getDaysUntilExpiry = (expiryDate) => {
   if (!expiryDate) return 999;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  const expiry = new Date(expiryDate);
-  expiry.setHours(0, 0, 0, 0);
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const diffTime = expiry - today;
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    let expiry;
+    if (expiryDate instanceof Date) {
+      expiry = new Date(expiryDate);
+    } else if (expiryDate?.toDate && typeof expiryDate.toDate === "function") {
+      expiry = expiryDate.toDate();
+    } else {
+      expiry = new Date(expiryDate);
+    }
+
+    if (isNaN(expiry.getTime())) return 999;
+
+    expiry.setHours(0, 0, 0, 0);
+
+    const diffTime = expiry - today;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  } catch (e) {
+    console.error("Error calculating expiry days:", e);
+    return 999;
+  }
 };

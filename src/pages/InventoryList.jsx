@@ -286,7 +286,7 @@ export default function InventoryList() {
       </div>
 
       {/* List Section */}
-      <div className="px-4 mt-0 mb-20">
+      <div className="px-4 mt-0 pb-44">
         <div className="flex flex-col gap-3">
           {filteredItems.map((item) => {
             const days = getDaysUntilExpiry(item.expiryDate);

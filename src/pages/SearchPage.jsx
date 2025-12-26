@@ -4,6 +4,7 @@ import { useInventory } from '../context/InventoryContext';
 import { useFridge } from '../context/FridgeContext';
 import ItemDetailModal from '../components/ItemDetailModal';
 import ItemCard from '../components/ItemCard';
+import { getDaysUntilExpiry } from '../lib/dateUtils';
 
 export default function SearchPage() {
   const navigate = useNavigate();
@@ -53,18 +54,6 @@ export default function SearchPage() {
     { id: 'freezer', label: '냉동실' },
     { id: 'pantry', label: '실온' }
   ];
-
-  const getDaysUntilExpiry = (expiryDate) => {
-    if (!expiryDate) return 999;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const expiry = new Date(expiryDate);
-    expiry.setHours(0, 0, 0, 0);
-
-    const diffTime = expiry - today;
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  };
   
   const getStorageName = (item) => {
       const fridge = fridges.find(f => f.id === item.fridgeId);
@@ -114,7 +103,7 @@ export default function SearchPage() {
           const days = getDaysUntilExpiry(item.expiryDate);
           const isExpired = days < 0;
           const isExpiring = days >= 0 && days <= 3;
-          const isSafe = days > 3; // or no expiry?
+          const isSafe = days > 3 && days < 999; // Check for valid safe range
 
           matchesStatus = selectedFilters.status.some(status => {
               if (status === 'expired') return isExpired;

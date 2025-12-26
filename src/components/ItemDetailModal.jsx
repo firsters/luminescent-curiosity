@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { safeDateToIso, getDaysUntilExpiry } from "../lib/dateUtils";
 
@@ -15,7 +16,7 @@ export default function ItemDetailModal({
 
   const days = getDaysUntilExpiry(item.expiryDate);
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
@@ -134,6 +135,7 @@ export default function ItemDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

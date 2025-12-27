@@ -1,0 +1,44 @@
+{
+  "app": {
+    "title": "나의 냉장고",
+    "loading": "로딩 중...",
+    "error": "데이터 불러오기 오류"
+  },
+  "auth": {
+    "login": "로그인",
+    "signup": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?",
+    "logout": "로그아웃",
+    "resetPassword": "비밀번호 재설정",
+    "resetEmailSent": "비밀번호 재설정 이메일을 보냈습니다."
+  },
+  "fridge": {
+    "listTitle": "보관 장소 목록",
+    "add": "새 냉장고 추가",
+    "edit": "편집",
+    "done": "완료",
+    "name": "이름",
+    "type": "종류",
+    "items": "{{count}}개 항목",
+    "cancel": "취소",
+    "save": "저장하기",
+    "create": "추가하기",
+    "deleteConfirm": "'{{name}}' 냉장고를 삭제하시겠습니까?\n주의: 보관 중인 모든 음식이 함께 삭제됩니다.",
+    "types": {
+      "fridge": "냉장고",
+      "kimchi": "김치냉장고",
+      "freezer": "냉동고",
+      "pantry": "팬트리"
+    }
+  },
+  "stats": {
+    "safe": "여유",
+    "expiring": "소비기한 임박",
+    "expired": "소비기한 만료",
+    "noItems": "해당하는 항목이 없습니다."
+  }
+}

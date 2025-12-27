@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_bg.png";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -92,14 +94,14 @@ export default function Login() {
         <div className="w-full rounded-3xl bg-surface-light dark:bg-surface-dark shadow-xl p-8 border border-white/20 backdrop-blur-sm">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-primary mb-2">
-              {isReset ? "비밀번호 찾기" : "Fridgy"}
+              {isReset ? t("auth.resetPassword") : t("app.title")}
             </h1>
             <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
               {isReset
-                ? "가입하신 이메일로 재설정 링크를 보내드립니다."
+                ? t("auth.resetEmailSent")
                 : isSignup
-                ? "나만의 스마트한 냉장고 관리를 시작해보세요."
-                : "냉장고 속 신선함을 관리하세요."}
+                ? t("auth.signup")
+                : t("auth.login")}
             </p>
           </div>
 
@@ -138,7 +140,7 @@ export default function Login() {
 
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                이메일
+                {t("auth.email")}
               </label>
               <input
                 type="email"
@@ -153,7 +155,7 @@ export default function Login() {
             {!isReset && (
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  비밀번호
+                  {t("auth.password")}
                 </label>
                 <input
                   type="password"
@@ -206,10 +208,10 @@ export default function Login() {
               className="mt-2 w-full rounded-xl bg-primary py-3.5 text-base font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary-dark active:scale-98"
             >
               {isReset
-                ? "재설정 메일 보내기"
+                ? t("auth.resetPassword")
                 : isSignup
-                ? "회원가입"
-                : "로그인"}
+                ? t("auth.signup")
+                : t("auth.login")}
             </button>
           </form>
 
@@ -219,7 +221,7 @@ export default function Login() {
                 onClick={() => toggleMode("reset")}
                 className="text-sm font-medium text-text-sub-light dark:text-text-sub-dark hover:text-primary dark:hover:text-primary transition-colors"
               >
-                비밀번호를 잊으셨나요?
+                {t("auth.forgotPassword")}
               </button>
             </div>
           )}
@@ -229,24 +231,22 @@ export default function Login() {
           <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
             {isReset ? (
               <>
-                비밀번호가 기억나시나요?{" "}
+                {t("auth.hasAccount")}{" "}
                 <button
                   onClick={() => toggleMode("login")}
                   className="font-bold text-primary hover:underline ml-1"
                 >
-                  로그인하기
+                  {t("auth.login")}
                 </button>
               </>
             ) : (
               <>
-                {isSignup
-                  ? "이미 계정이 있으신가요?"
-                  : "아직 계정이 없으신가요?"}{" "}
+                {isSignup ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
                 <button
                   onClick={() => toggleMode(isSignup ? "login" : "signup")}
                   className="font-bold text-primary hover:underline ml-1"
                 >
-                  {isSignup ? "로그인" : "회원가입"}
+                  {isSignup ? t("auth.login") : t("auth.signup")}
                 </button>
               </>
             )}

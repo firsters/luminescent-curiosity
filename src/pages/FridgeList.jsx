@@ -6,8 +6,10 @@ import { useInventory } from "../context/InventoryContext";
 import { GiCabbage } from "react-icons/gi";
 import { BiPackage } from "react-icons/bi";
 import Toast from "../components/Toast";
+import { useTranslation } from "react-i18next";
 
 export default function FridgeList() {
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const {
     fridges,
@@ -99,12 +101,7 @@ export default function FridgeList() {
     e.preventDefault(); // Prevent Link navigation
     e.stopPropagation();
 
-    if (
-      !confirm(
-        `'${name}' 냉장고를 삭제하시겠습니까?\n주의: 보관 중인 모든 음식이 함께 삭제됩니다.`
-      )
-    )
-      return;
+    if (!confirm(t("fridge.deleteConfirm", { name }))) return;
 
     try {
       await deleteFridge(id);
@@ -148,7 +145,7 @@ export default function FridgeList() {
     if (count > 0) {
       navigate(`/inventory?filter=${type}`);
     } else {
-      showToast("해당하는 항목이 없습니다.");
+      showToast(t("stats.noItems"));
     }
   };
 
@@ -185,7 +182,7 @@ export default function FridgeList() {
           </span>
         </div>
         <h1 className="flex-1 text-center text-lg font-bold leading-tight tracking-tight text-text-main-light dark:text-text-main-dark">
-          나의 냉장고
+          {t("app.title")}
         </h1>
         <div className="flex items-center justify-end gap-2">
           <button className="flex size-10 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/10">
@@ -212,7 +209,7 @@ export default function FridgeList() {
             className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform text-left"
           >
             <span className="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark">
-              여유
+              {t("stats.safe")}
             </span>
             <span className="mt-1 text-2xl font-bold text-text-main-light dark:text-text-main-dark">
               {safeCount}개
@@ -223,7 +220,7 @@ export default function FridgeList() {
             className="flex min-w-[140px] flex-col rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 active:scale-95 transition-transform text-left"
           >
             <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
-              소비기한 임박
+              {t("stats.expiring")}
             </span>
             <span className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">
               {expiringCount}개
@@ -234,7 +231,7 @@ export default function FridgeList() {
             className="flex min-w-[140px] flex-col rounded-2xl bg-red-50 p-4 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 active:scale-95 transition-transform text-left"
           >
             <span className="text-xs font-semibold text-red-600 dark:text-red-400">
-              소비기한 만료
+              {t("stats.expired")}
             </span>
             <span className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
               {expiredCount}개
@@ -246,12 +243,12 @@ export default function FridgeList() {
         <div>
           {fridgeError && (
             <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
-              데이터 불러오기 오류: {fridgeError}
+              {t("app.error")}: {fridgeError}
             </div>
           )}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-text-main-light dark:text-text-main-dark">
-              보관 장소 목록
+              {t("fridge.listTitle")}
             </h2>
             <button
               onClick={() => setIsEditMode(!isEditMode)}
@@ -261,12 +258,12 @@ export default function FridgeList() {
                   : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
               }`}
             >
-              {isEditMode ? "완료" : "편집"}
+              {isEditMode ? t("fridge.done") : t("fridge.edit")}
             </button>
           </div>
 
           {fridgeLoading ? (
-            <div className="text-center py-10">Loading...</div>
+            <div className="text-center py-10">{t("app.loading")}</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {fridges.map((fridge) => {
@@ -345,7 +342,7 @@ export default function FridgeList() {
                         </h3>
                       </div>
                       <div className="mt-1 text-sm font-medium text-text-sub-light dark:text-text-sub-dark">
-                        {count}개 항목
+                        {t("fridge.items", { count })}
                       </div>
                     </div>
                   </>
@@ -383,7 +380,7 @@ export default function FridgeList() {
                   <span className="material-symbols-outlined">add</span>
                 </div>
                 <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">
-                  새 냉장고 추가
+                  {t("fridge.add")}
                 </span>
               </button>
             </div>
@@ -396,11 +393,13 @@ export default function FridgeList() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl p-6 shadow-xl border border-white/10">
             <h3 className="text-lg font-bold mb-4">
-              {modalMode === "add" ? "새 보관 장소 추가" : "보관 장소 수정"}
+              {modalMode === "add" ? t("fridge.add") : t("fridge.edit")}
             </h3>
             <form onSubmit={handleSaveFridge} className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">이름</label>
+                <label className="block text-sm font-medium mb-1">
+                  {t("fridge.name")}
+                </label>
                 <input
                   value={fridgeName}
                   onChange={(e) => setFridgeName(e.target.value)}
@@ -410,7 +409,9 @@ export default function FridgeList() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">종류</label>
+                <label className="block text-sm font-medium mb-1">
+                  {t("fridge.type")}
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {["fridge", "kimchi", "freezer", "pantry"].map((type) => (
                     <button
@@ -423,10 +424,7 @@ export default function FridgeList() {
                           : "border-gray-200 dark:border-gray-700 text-gray-500"
                       }`}
                     >
-                      {type === "fridge" && "냉장고"}
-                      {type === "kimchi" && "김치냉장고"}
-                      {type === "freezer" && "냉동고"}
-                      {type === "pantry" && "팬트리"}
+                      {t(`fridge.types.${type}`)}
                     </button>
                   ))}
                 </div>
@@ -437,13 +435,13 @@ export default function FridgeList() {
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300"
                 >
-                  취소
+                  {t("fridge.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20"
                 >
-                  {modalMode === "add" ? "추가하기" : "저장하기"}
+                  {modalMode === "add" ? t("fridge.create") : t("fridge.save")}
                 </button>
               </div>
             </form>

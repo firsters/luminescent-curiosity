@@ -1,0 +1,44 @@
+{
+  "app": {
+    "title": "My Fridge",
+    "loading": "Loading...",
+    "error": "Error loading data"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "logout": "Logout",
+    "resetPassword": "Reset Password",
+    "resetEmailSent": "Password reset email sent."
+  },
+  "fridge": {
+    "listTitle": "Storage Locations",
+    "add": "Add New Fridge",
+    "edit": "Edit",
+    "done": "Done",
+    "name": "Name",
+    "type": "Type",
+    "items": "{{count}} Items",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Add",
+    "deleteConfirm": "Delete '{{name}}'?\nWarning: All items inside will be deleted.",
+    "types": {
+      "fridge": "Fridge",
+      "kimchi": "Kimchi Fridge",
+      "freezer": "Freezer",
+      "pantry": "Pantry"
+    }
+  },
+  "stats": {
+    "safe": "Safe",
+    "expiring": "Expiring Soon",
+    "expired": "Expired",
+    "noItems": "No items found."
+  }
+}

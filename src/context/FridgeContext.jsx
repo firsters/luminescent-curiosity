@@ -9,10 +9,11 @@ export function useFridge() {
   return useContext(FridgeContext);
 }
 
-export function FridgeProvider({ children }) {
   const { familyId, currentUser } = useAuth();
+  // Fixed: removed shadowed familyId
   const [fridges, setFridges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dbError, setDbError] = useState(null);
 
   useEffect(() => {
     if (!familyId) {
@@ -49,6 +50,7 @@ export function FridgeProvider({ children }) {
       setLoading(false);
     }, (error) => {
       console.error("Error fetching fridges:", error);
+      setDbError(error.message); // Capture error
       setLoading(false);
     });
 
@@ -95,9 +97,9 @@ export function FridgeProvider({ children }) {
     return updateDoc(doc(db, 'fridges', id), updates);
   }
 
-  const value = {
     fridges,
     loading,
+    error: dbError, // Export error state
     addFridge,
     deleteFridge,
     updateFridge

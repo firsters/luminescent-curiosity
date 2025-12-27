@@ -10,6 +10,7 @@ export default function FridgeList() {
   const {
     fridges,
     loading: fridgeLoading,
+    error: fridgeError, // Get sensitive error
     addFridge,
     deleteFridge,
     updateFridge,
@@ -233,6 +234,11 @@ export default function FridgeList() {
 
         {/* Fridge Grid */}
         <div>
+          {fridgeError && (
+            <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
+              데이터 불러오기 오류: {fridgeError}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-text-main-light dark:text-text-main-dark">
               보관 장소 목록

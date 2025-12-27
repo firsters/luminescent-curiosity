@@ -358,6 +358,27 @@ export default function InventoryList() {
           consumeItem(selectedItem.id);
           setSelectedItem(null);
         }}
+        // Add Navigation Props
+        onNext={(() => {
+          if (!selectedItem) return null;
+          const currentIndex = filteredItems.findIndex(
+            (i) => i.id === selectedItem.id
+          );
+          if (currentIndex >= 0 && currentIndex < filteredItems.length - 1) {
+            return () => setSelectedItem(filteredItems[currentIndex + 1]);
+          }
+          return null;
+        })()}
+        onPrev={(() => {
+          if (!selectedItem) return null;
+          const currentIndex = filteredItems.findIndex(
+            (i) => i.id === selectedItem.id
+          );
+          if (currentIndex > 0) {
+            return () => setSelectedItem(filteredItems[currentIndex - 1]);
+          }
+          return null;
+        })()}
       />
     </>
   );

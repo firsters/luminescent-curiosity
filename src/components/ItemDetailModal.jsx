@@ -9,6 +9,8 @@ export default function ItemDetailModal({
   onDelete,
   onConsume,
   onEdit,
+  onNext,
+  onPrev,
 }) {
   const navigate = useNavigate();
 
@@ -16,13 +18,70 @@ export default function ItemDetailModal({
 
   const days = getDaysUntilExpiry(item.expiryDate);
 
+  // Swipe Logic
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  const handleTouchStart = (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Minimum swipe distance & Horizontal dominant
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 2) {
+      if (deltaX > 0 && onPrev) {
+        onPrev(); // Swipe Right -> Prev
+      } else if (deltaX < 0 && onNext) {
+        onNext(); // Swipe Left -> Next
+      }
+    }
+  };
+
   return createPortal(
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
+      {/* Navigation Arrows (Desktop/Tablet or large phones) */}
+      {onPrev && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-10 size-12 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-all active:scale-95"
+        >
+          <span className="material-symbols-outlined text-3xl">
+            chevron_left
+          </span>
+        </button>
+      )}
+
+      {onNext && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-10 size-12 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-all active:scale-95"
+        >
+          <span className="material-symbols-outlined text-3xl">
+            chevron_right
+          </span>
+        </button>
+      )}
+
       <div
-        className="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-3xl overflow-hidden shadow-2xl"
+        className="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-3xl overflow-hidden shadow-2xl relative transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Image Header */}

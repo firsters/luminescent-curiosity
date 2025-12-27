@@ -14,6 +14,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
+import Toast from "../components/Toast";
 
 export const InventoryContext = createContext();
 
@@ -64,6 +65,111 @@ export function InventoryProvider({ children }) {
 
     return unsubscribe;
   }, [familyId]);
+
+  // Snapshot Comparison Logic for Item Count Changes
+  useEffect(() => {
+    if (loading || items.length === 0) return;
+
+    const SNAPSHOT_KEY = "fridgy_inventory_snapshot";
+
+    const calculateCounts = (itemList) => {
+      const counts = {};
+      itemList.forEach((item) => {
+        if (item.status === "available") {
+          const cat = item.foodCategory || "uncategorized";
+          counts[cat] = (counts[cat] || 0) + 1;
+        }
+      });
+      return counts;
+    };
+
+    const currentCounts = calculateCounts(items);
+
+    const checkDiff = () => {
+      const savedSnapshot = localStorage.getItem(SNAPSHOT_KEY);
+      if (!savedSnapshot) {
+        // First run, save and exit
+        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
+        return;
+      }
+
+      const prevCounts = JSON.parse(savedSnapshot);
+      const diffs = [];
+
+      // Compare Current vs Previous
+      const allKeys = new Set([
+        ...Object.keys(currentCounts),
+        ...Object.keys(prevCounts),
+      ]);
+
+      allKeys.forEach((key) => {
+        const current = currentCounts[key] || 0;
+        const prev = prevCounts[key] || 0;
+        const diff = current - prev;
+
+        if (diff !== 0) {
+          // Map category IDs to Labels (Simple fallback map)
+          const CATEGORY_MAP = {
+            fruit: "과일",
+            vegetable: "채소",
+            meat: "육류",
+            dairy: "유제품",
+            frozen: "냉동",
+            drink: "음료",
+            sauce: "소스",
+            snack: "간식",
+            uncategorized: "기타",
+          };
+          const label = CATEGORY_MAP[key] || key;
+          diffs.push(`${label} ${diff > 0 ? "+" : ""}${diff}`);
+        }
+      });
+
+      if (diffs.length > 0) {
+        // Show Toast
+        Toast.success(`변경알림: ${diffs.join(", ")}`, { duration: 4000 });
+      }
+
+      // Update Snapshot
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
+    };
+
+    // Trigger check on Visibility Change (Foreground)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkDiff();
+      }
+    };
+
+    // Also run check immediately if data updated (Real-time sync)
+    // We throttle this slightly to avoid double toasts on self-updates,
+    // but for shared updates, it's good to see immediately.
+    // For now, let's just run it. useAuth handles local vs remote usually.
+    // checkDiff();
+    // Wait... if we run checkDiff() every time 'items' changes, we get notified of our OWN changes immediately.
+    // Ideally we want to notify when *returning* to the app, or if a remote change happens.
+
+    // Let's rely on visibility change for "Coming back" context.
+    // AND run checkDiff on every item update to keep local storage fresh,
+    // BUT only toast if it's a significant remote update?
+    // Actually simplicity:
+    // 1. App Load / Re-focus -> Compare with stored.
+    // 2. Continuous updates -> Just update storage? NO, if we just update storage, we miss the diff.
+
+    // Improved Strategy:
+    // Always compare current 'items' with 'localStorage'.
+    // If difference found -> Toast -> Update localStorage.
+    // This covers both:
+    // - Remote changes coming in real-time (onSnapshot fires -> items update -> effect fires -> diff found -> Toast)
+    // - Coming back to app (if data was stale and refreshed)
+
+    checkDiff();
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [items, loading]);
 
   async function addItem(itemData) {
     if (!familyId) throw new Error("No family ID found");

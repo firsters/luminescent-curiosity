@@ -37,12 +37,24 @@ export default function Login() {
         navigate("/");
       }
     } catch (err) {
-      setError(
-        "Failed to " +
-          (isReset ? "reset password" : isSignup ? "sign up" : "login") +
-          ": " +
-          err.message
-      );
+      console.error(err);
+      let msg = "오류가 발생했습니다.";
+      if (err.code === "auth/email-already-in-use") {
+        msg = "이미 가입된 이메일입니다. 로그인해주세요.";
+      } else if (err.code === "auth/invalid-email") {
+        msg = "유효하지 않은 이메일 주소입니다.";
+      } else if (err.code === "auth/weak-password") {
+        msg = "비밀번호는 6자 이상이어야 합니다.";
+      } else if (
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/invalid-credential"
+      ) {
+        msg = "이메일 또는 비밀번호가 올바르지 않습니다.";
+      } else {
+        msg = "오류가 발생했습니다: " + err.message;
+      }
+      setError(msg);
     }
   }
 

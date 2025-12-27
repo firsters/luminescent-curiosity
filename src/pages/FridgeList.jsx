@@ -3,8 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFridge } from "../context/FridgeContext";
 import { useInventory } from "../context/InventoryContext";
-import { GiCabbage } from "react-icons/gi";
-import { BiPackage } from "react-icons/bi";
+import { GiCabbage, GiCardboardBox } from "react-icons/gi";
 import Toast from "../components/Toast";
 import { useTranslation } from "react-i18next";
 
@@ -151,7 +150,10 @@ export default function FridgeList() {
 
   // Fridge Type Visuals
   const getFridgeVisual = (type) => {
-    switch (type) {
+    // Normalize type to ensure robustness
+    const normalizedType = type ? type.toLowerCase() : "fridge";
+
+    switch (normalizedType) {
       case "fridge":
         return { type: "material", icon: "kitchen", color: "text-primary" };
       case "kimchi":
@@ -165,7 +167,7 @@ export default function FridgeList() {
       case "pantry":
         return {
           type: "react-icon",
-          icon: BiPackage, // Changed to Box icon
+          icon: GiCardboardBox, // Distinct Cardboard Box
           color: "text-orange-500",
         };
       default:

@@ -47,7 +47,8 @@ export async function cropTransparent(imageBlob) {
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           const alpha = data[(y * w + x) * 4 + 3];
-          if (alpha > 0) {
+          // Use a threshold (e.g., 20) instead of 0 to ignore invisible/faint artifacts
+          if (alpha > 20) {
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;

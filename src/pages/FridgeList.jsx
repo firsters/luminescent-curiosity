@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFridge } from "../context/FridgeContext";
 import { useInventory } from "../context/InventoryContext";
+import { GiCabbage } from "react-icons/gi";
+import { BiCabinet } from "react-icons/bi";
 import Toast from "../components/Toast";
 
 export default function FridgeList() {
@@ -154,15 +156,23 @@ export default function FridgeList() {
   const getFridgeVisual = (type) => {
     switch (type) {
       case "fridge":
-        return { icon: "kitchen", color: "text-primary" };
+        return { type: "material", icon: "kitchen", color: "text-primary" };
       case "kimchi":
-        return { icon: "ac_unit", color: "text-red-500" };
+        return { type: "react-icon", icon: GiCabbage, color: "text-green-600" }; // Green Cabbage
       case "freezer":
-        return { icon: "severe_cold", color: "text-blue-500" };
+        return {
+          type: "material",
+          icon: "severe_cold",
+          color: "text-blue-500",
+        };
       case "pantry":
-        return { icon: "shelves", color: "text-orange-500" };
+        return {
+          type: "react-icon",
+          icon: BiCabinet,
+          color: "text-orange-500",
+        };
       default:
-        return { icon: "kitchen", color: "text-gray-500" };
+        return { type: "material", icon: "kitchen", color: "text-gray-500" };
     }
   };
 
@@ -291,12 +301,16 @@ export default function FridgeList() {
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
 
                       {/* Icon Badge */}
-                      <div className="absolute right-2 bottom-2 rounded-full bg-white/90 dark:bg-black/60 p-2 backdrop-blur-sm shadow-sm">
-                        <span
-                          className={`material-symbols-outlined text-2xl ${visual.color}`}
-                        >
-                          {visual.icon}
-                        </span>
+                      <div className="absolute right-2 bottom-2 rounded-full bg-white/90 dark:bg-black/60 p-2 backdrop-blur-sm shadow-sm flex items-center justify-center">
+                        {visual.type === "react-icon" ? (
+                          <visual.icon className={`text-2xl ${visual.color}`} />
+                        ) : (
+                          <span
+                            className={`material-symbols-outlined text-2xl ${visual.color}`}
+                          >
+                            {visual.icon}
+                          </span>
+                        )}
                       </div>
 
                       {/* Delete Button (Only in Edit Mode) */}

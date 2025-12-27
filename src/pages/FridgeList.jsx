@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFridge } from "../context/FridgeContext";
 import { useInventory } from "../context/InventoryContext";
 import { GiCabbage } from "react-icons/gi";
-import { BiCabinet } from "react-icons/bi";
+import { BiPackage } from "react-icons/bi";
 import Toast from "../components/Toast";
 
 export default function FridgeList() {
@@ -168,7 +168,7 @@ export default function FridgeList() {
       case "pantry":
         return {
           type: "react-icon",
-          icon: BiCabinet,
+          icon: BiPackage, // Changed to Box icon
           color: "text-orange-500",
         };
       default:

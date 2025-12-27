@@ -30,9 +30,7 @@ export function FridgeProvider({ children }) {
   const [dbError, setDbError] = useState(null);
 
   useEffect(() => {
-    console.log("FridgeProvider Effect: familyId =", familyId);
     if (!familyId) {
-      console.log("FridgeProvider: No familyId, setting empty fridges");
       setFridges([]);
       setLoading(false);
       return;
@@ -49,10 +47,6 @@ export function FridgeProvider({ children }) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        console.log(
-          "FridgeProvider: Snapshot received, docs size =",
-          snapshot.size
-        );
         const fridgeData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -82,7 +76,6 @@ export function FridgeProvider({ children }) {
   }, [familyId]);
 
   async function addFridge(fridgeData) {
-    console.log("addFridge called with:", fridgeData, "familyId:", familyId);
     if (!familyId) throw new Error("No family ID found");
 
     return addDoc(collection(db, "fridges"), {

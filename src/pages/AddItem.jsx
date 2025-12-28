@@ -250,6 +250,11 @@ export default function AddItem() {
             );
             // Non-blocking error for automation
           }
+
+          // Restore Feedback Alert
+          alert(
+            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
+          );
         }
       } catch (error) {
         console.error("Image processing/AI failed:", error);

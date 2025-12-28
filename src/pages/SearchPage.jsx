@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useInventory } from "../context/InventoryContext";
+import { useInventory, CATEGORY_LABELS } from "../context/InventoryContext";
 import { useFridge } from "../context/FridgeContext";
 import ItemDetailModal from "../components/ItemDetailModal";
 import ItemCard from "../components/ItemCard";
@@ -8,9 +8,11 @@ import { getDaysUntilExpiry } from "../lib/dateUtils";
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { items, deleteItem, consumeItem } = useInventory();
+  const { items, categories, updateCategories, deleteItem, consumeItem } =
+    useInventory();
   const { fridges } = useFridge();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditingOrder, setIsEditingOrder] = useState(false);
 
   // Multi-select Filters State
   const [selectedFilters, setSelectedFilters] = useState({
@@ -31,18 +33,6 @@ export default function SearchPage() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Constants & Helpers
-  const CATEGORY_LABELS = {
-    fruit: "과일",
-    vegetable: "채소",
-    meat: "육류",
-    dairy: "유제품",
-    frozen: "냉동",
-    drink: "음료",
-    sauce: "소스",
-    snack: "간식",
-  };
-
   const STATUS_OPTIONS = [
     { id: "safe", label: "여유" },
     { id: "expiring", label: "임박" },
@@ -57,7 +47,6 @@ export default function SearchPage() {
 
   const getStorageName = (item) => {
     const fridge = fridges.find((f) => f.id === item.fridgeId);
-    // Fallback if fridge not found but category exists (legacy)
     if (!fridge)
       return item.category === "fridge"
         ? "냉장실"
@@ -69,34 +58,20 @@ export default function SearchPage() {
 
   const getFridgeType = (item) => {
     const fridge = fridges.find((f) => f.id === item.fridgeId);
-    if (fridge) return fridge.type; // 'kimchi' might need mapping if we only have fridge/freezer/pantry filters
-    // Mapping kimchi to fridge or separate?
-    // The requirement only listed fridge, freezer, pantry.
-    // AddItem has: kimchi, freezer, pantry, default(fridge).
-    if (fridge && fridge.type === "kimchi") return "fridge"; // Treat kimchi as fridge for this filter? Or add Kimchi?
-    // Let's assume standard types. If 'kimchi', it might not match 'fridge' unless we map it.
-    // User requested "Storage Type" (Fridge, Freezer, Pantry).
-    // If I look at SearchPage original code: it had 'fridge', 'freezer', 'pantry'.
+    if (fridge && fridge.type === "kimchi") return "fridge";
     return fridge ? fridge.type : null;
   };
 
-  // Compute Top 5 Categories
-  const topCategories = useMemo(() => {
-    const counts = {};
-    items.forEach((item) => {
-      if (item.foodCategory) {
-        counts[item.foodCategory] = (counts[item.foodCategory] || 0) + 1;
-      }
-    });
-
-    // Convert to array and sort
-    const sorted = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1]) // Sort by count desc
-      .slice(0, 5) // Take top 5
-      .map(([id]) => ({ id, label: CATEGORY_LABELS[id] || id }));
-
-    return sorted;
-  }, [items]);
+  const moveCategory = (index, direction) => {
+    const newCats = [...categories];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= newCats.length) return;
+    [newCats[index], newCats[targetIndex]] = [
+      newCats[targetIndex],
+      newCats[index],
+    ];
+    updateCategories(newCats);
+  };
 
   // Filter Logic
   const filteredItems = items.filter((item) => {
@@ -176,15 +151,18 @@ export default function SearchPage() {
       groups[cat].push(item);
     });
 
-    // Sort categories: 'snack' first, then others by label, 'other' at the end
+    // Sort categories based on the global order in the categories array
+    const categoryOrderMap = categories.reduce((acc, cat, idx) => {
+      acc[cat.id] = idx;
+      return acc;
+    }, {});
+
     const sortedCategories = Object.keys(groups).sort((a, b) => {
-      if (a === "snack") return -1;
-      if (b === "snack") return 1;
       if (a === "other") return 1;
       if (b === "other") return -1;
-      const labelA = CATEGORY_LABELS[a] || a;
-      const labelB = CATEGORY_LABELS[b] || b;
-      return labelA.localeCompare(labelB);
+      const orderA = categoryOrderMap[a] ?? 999;
+      const orderB = categoryOrderMap[b] ?? 999;
+      return orderA - orderB;
     });
 
     return sortedCategories.map((cat) => ({
@@ -289,32 +267,68 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {/* Row 3: Category (Top 5) */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          <span className="text-xs font-bold text-gray-400 shrink-0 w-12">
-            카테고리
-          </span>
-          <div className="flex gap-2">
-            {topCategories.length > 0 ? (
-              topCategories.map((cat) => (
+        {/* Row 3: Category (Full List with Order Edit) */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-400 shrink-0 w-12">
+              카테고리
+            </span>
+            <button
+              onClick={() => setIsEditingOrder(!isEditingOrder)}
+              className={`text-[10px] px-2 py-0.5 rounded-md font-black transition-colors ${
+                isEditingOrder
+                  ? "bg-primary text-white"
+                  : "bg-slate-100 dark:bg-white/5 text-slate-400"
+              }`}
+            >
+              순서 편집
+            </button>
+          </div>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {categories.map((cat, idx) => (
+              <div key={cat.id} className="relative group shrink-0">
                 <button
-                  key={cat.id}
-                  onClick={() => toggleFilter("category", cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border
-                            ${
-                              isSelected("category", cat.id)
-                                ? "bg-primary text-white border-primary shadow-sm"
-                                : "bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
-                            }`}
+                  onClick={() =>
+                    !isEditingOrder && toggleFilter("category", cat.id)
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5
+                              ${
+                                isSelected("category", cat.id) &&
+                                !isEditingOrder
+                                  ? "bg-primary text-white border-primary shadow-sm"
+                                  : "bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                              } ${
+                    isEditingOrder
+                      ? "border-primary/50 border-dashed opacity-100"
+                      : ""
+                  }`}
                 >
+                  {isEditingOrder && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveCategory(idx, -1);
+                      }}
+                      className="material-symbols-outlined text-[14px] hover:text-primary active:scale-125"
+                    >
+                      chevron_left
+                    </span>
+                  )}
                   {cat.label}
+                  {isEditingOrder && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveCategory(idx, 1);
+                      }}
+                      className="material-symbols-outlined text-[14px] hover:text-primary active:scale-125"
+                    >
+                      chevron_right
+                    </span>
+                  )}
                 </button>
-              ))
-            ) : (
-              <span className="text-xs text-gray-400 py-1.5">
-                등록된 음식 없음
-              </span>
-            )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -18,6 +18,28 @@ import Toast from "../components/Toast";
 
 export const InventoryContext = createContext();
 
+export const DEFAULT_CATEGORIES = [
+  { id: "fruit", label: "과일" },
+  { id: "vegetable", label: "채소" },
+  { id: "meat", label: "육류" },
+  { id: "dairy", label: "유제품" },
+  { id: "frozen", label: "냉동" },
+  { id: "drink", label: "음료" },
+  { id: "sauce", label: "소스" },
+  { id: "snack", label: "간식" },
+];
+
+export const CATEGORY_LABELS = {
+  fruit: "과일",
+  vegetable: "채소",
+  meat: "육류",
+  dairy: "유제품",
+  frozen: "냉동",
+  drink: "음료",
+  sauce: "소스",
+  snack: "간식",
+};
+
 export function useInventory() {
   return useContext(InventoryContext);
 }
@@ -26,6 +48,17 @@ export function InventoryProvider({ children }) {
   const { familyId, currentUser } = useAuth();
   const [items, setItems] = useState([]); // All items (available + consumed)
   const [loading, setLoading] = useState(true);
+
+  // Global Category State
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem("fridgy_categories");
+    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
+  });
+
+  const updateCategories = (newCategories) => {
+    setCategories(newCategories);
+    localStorage.setItem("fridgy_categories", JSON.stringify(newCategories));
+  };
   const [toast, setToast] = useState({ visible: false, message: "" });
 
   const showToast = (message) => {
@@ -324,6 +357,8 @@ export function InventoryProvider({ children }) {
   const value = {
     items,
     loading,
+    categories,
+    updateCategories,
     addItem,
     deleteItem,
     updateItem,

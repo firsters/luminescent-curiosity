@@ -15,44 +15,18 @@ import {
   cropToBox,
 } from "../lib/imageProcessing";
 
-const CATEGORY_LABELS = {
-  fruit: "과일",
-  vegetable: "채소",
-  meat: "육류",
-  dairy: "유제품",
-  frozen: "냉동",
-  drink: "음료",
-  sauce: "소스",
-  snack: "간식",
-};
+import { useInventory, CATEGORY_LABELS } from "../context/InventoryContext";
 
 export default function AddItem() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addItem, updateItem } = useInventory();
+  const { addItem, updateItem, categories, updateCategories } = useInventory();
   const { fridges } = useFridge();
 
   // Check if we are in Edit Mode
   const editModeItem = location.state?.editItem;
   const isEditMode = !!editModeItem;
 
-  // Constants
-  const DEFAULT_CATEGORIES = [
-    { id: "fruit", label: "과일" },
-    { id: "vegetable", label: "채소" },
-    { id: "meat", label: "육류" },
-    { id: "dairy", label: "유제품" },
-    { id: "frozen", label: "냉동" },
-    { id: "drink", label: "음료" },
-    { id: "sauce", label: "소스" },
-    { id: "snack", label: "간식" },
-  ];
-
-  // State
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem("custom_categories");
-    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-  });
   const [isEditingCategories, setIsEditingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
@@ -152,8 +126,7 @@ export default function AddItem() {
   const handleCategoryDelete = (id) => {
     if (!confirm("이 카테고리를 삭제하시겠습니까?")) return;
     const newCats = categories.filter((c) => c.id !== id);
-    setCategories(newCats);
-    localStorage.setItem("custom_categories", JSON.stringify(newCats));
+    updateCategories(newCats);
 
     // If selected category was deleted, reset to first available
     if (formData.foodCategory === id && newCats.length > 0) {
@@ -163,8 +136,7 @@ export default function AddItem() {
 
   const handleCategoryAdd = () => {
     if (!newCategoryName.trim()) return;
-    const newId = newCategoryName.trim(); // use name as ID for simplicity
-    // check duplicate
+    const newId = newCategoryName.trim();
     if (categories.some((c) => c.label === newCategoryName.trim())) {
       return alert("이미 존재하는 카테고리입니다.");
     }
@@ -173,10 +145,8 @@ export default function AddItem() {
       ...categories,
       { id: newId, label: newCategoryName.trim() },
     ];
-    setCategories(newCats);
-    localStorage.setItem("custom_categories", JSON.stringify(newCats));
+    updateCategories(newCats);
     setNewCategoryName("");
-    // auto select
     setFormData((prev) => ({ ...prev, foodCategory: newId }));
   };
 
@@ -245,24 +215,16 @@ export default function AddItem() {
           setLastAiBox(box);
 
           // 3. Auto-Add Category if new
-          if (aiResult.category) {
-            setCategories((prevCats) => {
-              if (!prevCats.find((c) => c.id === aiResult.category)) {
-                console.log("Auto-adding new category:", aiResult.category);
-                const newCat = {
-                  id: aiResult.category,
-                  label:
-                    CATEGORY_LABELS[aiResult.category] || aiResult.category,
-                };
-                const updatedCats = [...prevCats, newCat];
-                localStorage.setItem(
-                  "custom_categories",
-                  JSON.stringify(updatedCats)
-                );
-                return updatedCats;
-              }
-              return prevCats;
-            });
+          if (
+            aiResult.category &&
+            !categories.find((c) => c.id === aiResult.category)
+          ) {
+            console.log("Auto-adding new category:", aiResult.category);
+            const newCat = {
+              id: aiResult.category,
+              label: CATEGORY_LABELS[aiResult.category] || aiResult.category,
+            };
+            updateCategories([...categories, newCat]);
           }
 
           // 2. Automatic Background Removal

@@ -7,7 +7,8 @@ import ItemCard from "../components/ItemCard";
 import { getDaysUntilExpiry, safeDateToIso } from "../lib/dateUtils";
 
 export default function InventoryList() {
-  const { items, loading, deleteItem, consumeItem } = useInventory();
+  const { items, loading, categories, deleteItem, consumeItem } =
+    useInventory();
   const { fridges } = useFridge();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -20,17 +21,7 @@ export default function InventoryList() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const DEFAULT_CATEGORIES = [
-    { id: "all", label: "전체" },
-    { id: "fruit", label: "과일" },
-    { id: "vegetable", label: "채소" },
-    { id: "meat", label: "육류" },
-    { id: "dairy", label: "유제품" },
-    { id: "frozen", label: "냉동" },
-    { id: "drink", label: "음료" },
-    { id: "sauce", label: "소스" },
-    { id: "snack", label: "간식" },
-  ];
+  const displayCategories = [{ id: "all", label: "전체" }, ...categories];
 
   // Helper to update filter
   const handleFilterChange = (newFilter) => {
@@ -251,7 +242,7 @@ export default function InventoryList() {
 
         {/* Category Filters */}
         <div className="flex w-full gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {DEFAULT_CATEGORIES.map((cat) => (
+          {displayCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}

@@ -26,6 +26,15 @@ export function InventoryProvider({ children }) {
   const { familyId, currentUser } = useAuth();
   const [items, setItems] = useState([]); // All items (available + consumed)
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState({ visible: false, message: "" });
+
+  const showToast = (message) => {
+    setToast({ visible: true, message });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }));
+  };
 
   useEffect(() => {
     if (!familyId) {
@@ -127,7 +136,7 @@ export function InventoryProvider({ children }) {
 
       if (diffs.length > 0) {
         // Show Toast
-        Toast.success(`변경알림: ${diffs.join(", ")}`, { duration: 4000 });
+        showToast(`변경알림: ${diffs.join(", ")}`);
       }
 
       // Update Snapshot
@@ -264,6 +273,11 @@ export function InventoryProvider({ children }) {
   return (
     <InventoryContext.Provider value={value}>
       {children}
+      <Toast
+        message={toast.message}
+        isVisible={toast.visible}
+        onClose={hideToast}
+      />
     </InventoryContext.Provider>
   );
 }

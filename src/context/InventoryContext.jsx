@@ -52,6 +52,14 @@ export function InventoryProvider({ children }) {
       // orderBy('expiryDate', 'asc') // Requires composite index if mixed with equality filter
     );
 
+    // Safe Date Helper
+    const toDate = (val) => {
+      if (!val) return null;
+      if (typeof val.toDate === "function") return val.toDate();
+      if (val instanceof Date) return val;
+      return new Date(val);
+    };
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -59,9 +67,9 @@ export function InventoryProvider({ children }) {
           id: doc.id,
           ...doc.data(),
           // Convert FireStore timestamps to JS Dates for easier use in app
-          expiryDate: doc.data().expiryDate?.toDate(),
-          addedDate: doc.data().addedDate?.toDate(),
-          consumedDate: doc.data().consumedDate?.toDate(),
+          expiryDate: toDate(doc.data().expiryDate),
+          addedDate: toDate(doc.data().addedDate),
+          consumedDate: toDate(doc.data().consumedDate),
         }));
         setItems(inventoryData);
         setLoading(false);
@@ -95,52 +103,58 @@ export function InventoryProvider({ children }) {
     const currentCounts = calculateCounts(items);
 
     const checkDiff = () => {
-      const savedSnapshot = localStorage.getItem(SNAPSHOT_KEY);
-      if (!savedSnapshot) {
-        // First run, save and exit
-        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
-        return;
-      }
-
-      const prevCounts = JSON.parse(savedSnapshot);
-      const diffs = [];
-
-      // Compare Current vs Previous
-      const allKeys = new Set([
-        ...Object.keys(currentCounts),
-        ...Object.keys(prevCounts),
-      ]);
-
-      allKeys.forEach((key) => {
-        const current = currentCounts[key] || 0;
-        const prev = prevCounts[key] || 0;
-        const diff = current - prev;
-
-        if (diff !== 0) {
-          // Map category IDs to Labels (Simple fallback map)
-          const CATEGORY_MAP = {
-            fruit: "과일",
-            vegetable: "채소",
-            meat: "육류",
-            dairy: "유제품",
-            frozen: "냉동",
-            drink: "음료",
-            sauce: "소스",
-            snack: "간식",
-            uncategorized: "기타",
-          };
-          const label = CATEGORY_MAP[key] || key;
-          diffs.push(`${label} ${diff > 0 ? "+" : ""}${diff}`);
+      try {
+        const savedSnapshot = localStorage.getItem(SNAPSHOT_KEY);
+        if (!savedSnapshot) {
+          // First run, save and exit
+          localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
+          return;
         }
-      });
 
-      if (diffs.length > 0) {
-        // Show Toast
-        showToast(`변경알림: ${diffs.join(", ")}`);
+        const prevCounts = JSON.parse(savedSnapshot);
+        const diffs = [];
+
+        // Compare Current vs Previous
+        const allKeys = new Set([
+          ...Object.keys(currentCounts),
+          ...Object.keys(prevCounts),
+        ]);
+
+        allKeys.forEach((key) => {
+          const current = currentCounts[key] || 0;
+          const prev = prevCounts[key] || 0;
+          const diff = current - prev;
+
+          if (diff !== 0) {
+            // Map category IDs to Labels (Simple fallback map)
+            const CATEGORY_MAP = {
+              fruit: "과일",
+              vegetable: "채소",
+              meat: "육류",
+              dairy: "유제품",
+              frozen: "냉동",
+              drink: "음료",
+              sauce: "소스",
+              snack: "간식",
+              uncategorized: "기타",
+            };
+            const label = CATEGORY_MAP[key] || key;
+            diffs.push(`${label} ${diff > 0 ? "+" : ""}${diff}`);
+          }
+        });
+
+        if (diffs.length > 0) {
+          // Show Toast
+          showToast(`변경알림: ${diffs.join(", ")}`);
+        }
+
+        // Update Snapshot
+        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
+      } catch (error) {
+        console.error("Error in checkDiff:", error);
+        // Reset storage if corrupted
+        localStorage.removeItem(SNAPSHOT_KEY);
       }
-
-      // Update Snapshot
-      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(currentCounts));
     };
 
     // Trigger check on Visibility Change (Foreground)

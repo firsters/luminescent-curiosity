@@ -227,7 +227,8 @@ export default function SettingsPage() {
   };
 
   // PWA Update Logic (Consumed from Context)
-  const { needRefresh, updateServiceWorker } = useInstallPrompt();
+  const { needRefresh, updateServiceWorker, checkForUpdates, swRegistration } =
+    useInstallPrompt();
 
   const handleCheckUpdate = async () => {
     if ("serviceWorker" in navigator) {
@@ -239,8 +240,15 @@ export default function SettingsPage() {
       }
 
       try {
-        const registration = await navigator.serviceWorker.ready;
-        console.log("Checking for updates...");
+        // Use swRegistration from context if available, otherwise fallback to ready
+        const registration =
+          swRegistration || (await navigator.serviceWorker.ready);
+
+        if (!registration) {
+          throw new Error("Service Worker registration not found");
+        }
+
+        console.log("Checking for updates via registration...");
         await registration.update();
 
         // Polling for state change (up to 2 seconds)
@@ -255,18 +263,9 @@ export default function SettingsPage() {
 
         if (newWorkerFound || needRefresh) {
           console.log("Update found.");
-          // Ideally rely on the reactive 'needRefresh' to show the button, but we can alert too.
-          if (!needRefresh) {
-            // Force state update if needed, though useRegisterSW should handle it.
-            // We can just reload if the user wants, or tell them to click the button.
-            alert(
-              "새로운 버전이 감지되었습니다.\n잠시 후 '새로운 버전 업데이트' 버튼이 활성화됩니다."
-            );
-          } else {
-            alert(
-              "새로운 버전이 준비되었습니다.\n'새로운 버전 업데이트' 버튼을 눌러주세요."
-            );
-          }
+          alert(
+            "새로운 버전이 준비되었습니다.\n'새로운 버전 업데이트' 버튼을 눌러주세요."
+          );
         } else {
           alert(
             "현재 최신 버전을 사용 중입니다.\n(버전: " + __APP_VERSION__ + ")"
@@ -274,7 +273,17 @@ export default function SettingsPage() {
         }
       } catch (e) {
         console.error("Update check failed:", e);
-        alert("업데이트 확인 중 오류가 발생했습니다.");
+        // On iOS, if update() throws, it might be because it's already checking or specific PWA restrictions.
+        // We can just check if needRefresh is true now.
+        if (needRefresh) {
+          alert(
+            "새로운 버전이 준비되었습니다.\n'새로운 버전 업데이트' 버튼을 눌러주세요."
+          );
+        } else {
+          alert(
+            "업데이트 확인 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+          );
+        }
       }
     } else {
       alert("이 브라우저는 PWA 업데이트를 지원하지 않습니다.");

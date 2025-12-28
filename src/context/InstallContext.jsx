@@ -32,8 +32,15 @@ export function InstallProvider({ children }) {
   const checkForUpdates = async () => {
     if (swRegistration) {
       console.log("Checking for SW updates manually...");
-      await swRegistration.update();
+      try {
+        await swRegistration.update();
+        return true;
+      } catch (error) {
+        console.error("Manual SW update check failed:", error);
+        return false;
+      }
     }
+    return false;
   };
 
   const updateServiceWorker = async (reloadPage = true) => {
@@ -81,6 +88,7 @@ export function InstallProvider({ children }) {
     needRefresh,
     updateServiceWorker,
     checkForUpdates,
+    swRegistration,
     setOfflineReady,
     setNeedRefresh,
   };

@@ -27,10 +27,6 @@ export default function SearchPage() {
 
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
   // Constants & Helpers
   const CATEGORY_LABELS = {
     fruit: "과일",

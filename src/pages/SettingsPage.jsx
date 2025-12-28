@@ -9,8 +9,14 @@ import { useTheme } from "../context/ThemeContext";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { currentUser, logout, familyId, joinFamily, checkLastMember, deleteAccount } =
-    useAuth();
+  const {
+    currentUser,
+    logout,
+    familyId,
+    joinFamily,
+    checkLastMember,
+    deleteAccount,
+  } = useAuth();
   const { removeItemsByFilter } = useInventory();
   const { showAlert, showConfirm } = useModal();
   const { theme, setTheme } = useTheme();
@@ -51,7 +57,11 @@ export default function SettingsPage() {
 
     const handleDelete = async (e) => {
       e.preventDefault();
-      if (!(await showConfirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.")))
+      if (
+        !(await showConfirm(
+          "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        ))
+      )
         return;
 
       setLoading(true);
@@ -166,7 +176,9 @@ export default function SettingsPage() {
       }
 
       await joinFamily(inviteCode);
-      await showAlert("가족 그룹이 변경되었습니다! 이제 공유된 냉장고를 볼 수 있습니다.");
+      await showAlert(
+        "가족 그룹이 변경되었습니다! 이제 공유된 냉장고를 볼 수 있습니다."
+      );
       setInviteCode("");
     } catch (error) {
       console.error(error);
@@ -390,7 +402,7 @@ export default function SettingsPage() {
                     코드 복사
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const shareData = {
                         title: "Fridgy 가족 초대",
                         text: `[Fridgy] 우리 가족 냉장고 관리를 시작해보세요!\n\n🔑 가족 코드: ${familyId}\n\n아래 링크에서 앱을 설치하고, 설정 > 가족 공유에서 위 코드를 입력하세요.\n`,

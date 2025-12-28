@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useInventory } from "../context/InventoryContext";
+import { useInventory, CATEGORY_LABELS } from "../context/InventoryContext";
 import { useModal } from "../context/ModalContext";
 import { useFridge } from "../context/FridgeContext";
 import { fetchProductData } from "../lib/productFetcher";
@@ -16,17 +16,10 @@ import {
   cropToBox,
 } from "../lib/imageProcessing";
 
-import { useInventory, CATEGORY_LABELS } from "../context/InventoryContext";
-
 export default function AddItem() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { 
-    addItem, 
-    updateItem, 
-    categories, 
-    updateCategories
-  } = useInventory();
+  const { addItem, updateItem, categories, updateCategories } = useInventory();
   const { showAlert, showConfirm } = useModal();
   const { fridges } = useFridge();
 
@@ -153,7 +146,7 @@ export default function AddItem() {
     }
   };
 
-  const handleCategoryAdd = () => {
+  const handleCategoryAdd = async () => {
     if (!newCategoryName.trim()) return;
     const newId = newCategoryName.trim();
     if (categories.some((c) => c.label === newCategoryName.trim())) {
@@ -266,7 +259,11 @@ export default function AddItem() {
 
           // Restore Feedback Alert
           await showAlert(
-            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n소비기한: ${aiResult.expiryDate}${aiResult.isDetected ? " (사진에서 인식됨)" : " (권장 기한)"}\n\n결과가 자동으로 입력되었습니다.`
+            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${
+              aiResult.category
+            }\n소비기한: ${aiResult.expiryDate}${
+              aiResult.isDetected ? " (사진에서 인식됨)" : " (권장 기한)"
+            }\n\n결과가 자동으로 입력되었습니다.`
           );
         }
       } catch (error) {
@@ -335,7 +332,8 @@ export default function AddItem() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name) return await showAlert("이름을 입력해주세요.");
-    if (!formData.fridgeId) return await showAlert("보관할 냉장고를 선택해주세요.");
+    if (!formData.fridgeId)
+      return await showAlert("보관할 냉장고를 선택해주세요.");
 
     setLoading(true);
     try {
@@ -386,7 +384,9 @@ export default function AddItem() {
         { replace: true }
       );
     } catch (error) {
-      await showAlert((isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message);
+      await showAlert(
+        (isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message
+      );
     } finally {
       setLoading(false);
     }

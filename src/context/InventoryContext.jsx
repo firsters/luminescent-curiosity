@@ -55,9 +55,13 @@ export function InventoryProvider({ children }) {
     // Safe Date Helper
     const toDate = (val) => {
       if (!val) return null;
-      if (typeof val.toDate === "function") return val.toDate();
-      if (val instanceof Date) return val;
-      return new Date(val);
+      let date;
+      if (typeof val.toDate === "function") date = val.toDate();
+      else if (val instanceof Date) date = val;
+      else date = new Date(val);
+
+      if (isNaN(date.getTime())) return null;
+      return date;
     };
 
     const unsubscribe = onSnapshot(
@@ -144,8 +148,8 @@ export function InventoryProvider({ children }) {
         });
 
         if (diffs.length > 0) {
-          // Show Toast
-          showToast(`변경알림: ${diffs.join(", ")}`);
+          // Show Toast with prefix to distinguish from PWA/System updates
+          showToast(`[재고변경] ${diffs.join(", ")}`);
         }
 
         // Update Snapshot

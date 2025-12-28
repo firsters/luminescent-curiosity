@@ -29,13 +29,6 @@ export function InstallProvider({ children }) {
   const updateServiceWorker = async (reloadPage = true) => {
     console.log("updateServiceWorker called, reloading:", reloadPage);
     await updateSW(reloadPage);
-    // Failsafe: if the SW update doesn't trigger a reload within 1s, force it.
-    if (reloadPage) {
-      setTimeout(() => {
-        console.log("Forcing reload after SW update");
-        window.location.reload();
-      }, 1000);
-    }
   };
 
   useEffect(() => {

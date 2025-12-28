@@ -17,6 +17,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import LicensesPage from "./pages/LicensesPage";
 import { Link } from "react-router-dom";
 import ReloadPrompt from "./components/ReloadPrompt";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading, resendVerificationEmail, logout } = useAuth();
@@ -72,85 +73,90 @@ export default function App() {
   return (
     <BrowserRouter>
       <InstallProvider>
-        <ReloadPrompt />
-        <AuthProvider>
-          <FridgeProvider>
-            <InventoryProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/licenses" element={<LicensesPage />} />
+        <ErrorBoundary>
+          <ReloadPrompt />
+          <AuthProvider>
+            <FridgeProvider>
+              <InventoryProvider>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/licenses" element={<LicensesPage />} />
 
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <FridgeList />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <FridgeList />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/inventory"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <InventoryList />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/inventory"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <InventoryList />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/add"
-                  element={
-                    <ProtectedRoute>
-                      <AddItem />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/add"
+                    element={
+                      <ProtectedRoute>
+                        <AddItem />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/search"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <SearchPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/search"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <SearchPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/history"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <HistoryPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/history"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <HistoryPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <SettingsPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <SettingsPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route path="/test-fridge-list" element={<TestFridgeList />} />
-              </Routes>
-            </InventoryProvider>
-          </FridgeProvider>
-        </AuthProvider>
+                  <Route
+                    path="/test-fridge-list"
+                    element={<TestFridgeList />}
+                  />
+                </Routes>
+              </InventoryProvider>
+            </FridgeProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </InstallProvider>
     </BrowserRouter>
   );

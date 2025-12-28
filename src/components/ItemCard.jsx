@@ -11,12 +11,13 @@ export default function ItemCard({
 }) {
   const { days, badge, itemBgClass } = useMemo(() => {
     if (mode === "history") {
-      const consumedTime = item.consumedDate
-        ? new Date(item.consumedDate).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "";
+      const consumedTime =
+        item.consumedDate && !isNaN(new Date(item.consumedDate).getTime())
+          ? new Date(item.consumedDate).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "";
       return {
         days: 0,
         badge: {
@@ -140,12 +141,14 @@ export default function ItemCard({
               여유
             </p>
             <p className="text-gray-400 text-[10px]">
-              {item.expiryDate instanceof Date
+              {item.expiryDate instanceof Date &&
+              !isNaN(item.expiryDate.getTime())
                 ? `~${String(item.expiryDate.getMonth() + 1).padStart(
                     2,
                     "0"
                   )}.${String(item.expiryDate.getDate()).padStart(2, "0")}`
-                : typeof item.expiryDate === "string"
+                : typeof item.expiryDate === "string" &&
+                  item.expiryDate.length >= 10
                 ? `~${item.expiryDate.slice(5).replace("-", ".")}`
                 : ""}
             </p>

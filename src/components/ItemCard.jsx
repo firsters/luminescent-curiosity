@@ -12,18 +12,30 @@ export default function ItemCard({
 }) {
   const { days, badge, itemBgClass } = useMemo(() => {
     if (mode === "history") {
-      const consumedTime =
-        item.consumedDate && !isNaN(new Date(item.consumedDate).getTime())
-          ? new Date(item.consumedDate).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "";
+      const dateObj = new Date(item.consumedDate);
+      const isValid = item.consumedDate && !isNaN(dateObj.getTime());
+
+      const consumedTime = isValid
+        ? dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "";
+
+      const consumedDateStr = isValid
+        ? `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}.${String(dateObj.getDate()).padStart(2, "0")}`
+        : "";
+
       return {
         days: 0,
         badge: {
           text: consumedTime,
-          color: "text-gray-500 dark:text-gray-400 font-medium",
+          subText: consumedDateStr,
+          color: "text-[#0e1b12] dark:text-white font-bold",
+          subColor: "text-gray-400 dark:text-gray-500",
         },
         itemBgClass:
           "bg-white dark:bg-surface-dark border-gray-100 dark:border-white/5",
@@ -125,10 +137,9 @@ export default function ItemCard({
       <div className="flex flex-col items-end gap-2 shrink-0">
         {/* D-Day Badge / Time */}
         {mode === "history" ? (
-          <div
-            className={`flex items-center justify-center text-sm ${badge.color}`}
-          >
-            {badge.text}
+          <div className="flex flex-col items-end">
+            <p className={`text-sm ${badge.color}`}>{badge.text}</p>
+            <p className={`text-[10px] ${badge.subColor}`}>{badge.subText}</p>
           </div>
         ) : days <= 7 ? (
           <div

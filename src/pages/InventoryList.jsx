@@ -4,6 +4,7 @@ import { useFridge } from "../context/FridgeContext";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ItemDetailModal from "../components/ItemDetailModal";
 import ItemCard from "../components/ItemCard";
+import { useModal } from "../context/ModalContext";
 import { getDaysUntilExpiry, safeDateToIso } from "../lib/dateUtils";
 
 export default function InventoryList() {

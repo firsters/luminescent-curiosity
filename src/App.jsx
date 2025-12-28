@@ -3,7 +3,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { InventoryProvider } from "./context/InventoryContext";
 import { FridgeProvider } from "./context/FridgeContext";
 import { InstallProvider } from "./context/InstallContext";
+import { ModalProvider } from "./context/ModalContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { useModal } from "./context/ModalContext";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import FridgeList from "./pages/FridgeList";
@@ -22,6 +24,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser, loading, resendVerificationEmail, logout } = useAuth();
+  const { showAlert } = useModal();
 
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (!currentUser) return <Navigate to="/login" />;
@@ -47,10 +50,14 @@ const ProtectedRoute = ({ children }) => {
             인증 완료 (새로고침)
           </button>
           <button
-            onClick={() =>
+            onClick={async () =>
               resendVerificationEmail()
-                .then(() => alert("인증 메일을 다시 보냈습니다."))
-                .catch((e) => alert("메일 전송 실패: " + e.message))
+                .then(
+                  async () => await showAlert("인증 메일을 다시 보냈습니다.")
+                )
+                .catch(
+                  async (e) => await showAlert("메일 전송 실패: " + e.message)
+                )
             }
             className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold active:scale-95 transition-transform"
           >
@@ -75,90 +82,92 @@ export default function App() {
     <BrowserRouter>
       <InstallProvider>
         <ThemeProvider>
-          <ErrorBoundary>
-            <ReloadPrompt />
-            <AuthProvider>
-              <FridgeProvider>
-                <InventoryProvider>
-                  <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/terms" element={<TermsPage />} />
-                    <Route path="/privacy" element={<PrivacyPage />} />
-                    <Route path="/licenses" element={<LicensesPage />} />
+          <ModalProvider>
+            <ErrorBoundary>
+              <ReloadPrompt />
+              <AuthProvider>
+                <FridgeProvider>
+                  <InventoryProvider>
+                    <Routes>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/terms" element={<TermsPage />} />
+                      <Route path="/privacy" element={<PrivacyPage />} />
+                      <Route path="/licenses" element={<LicensesPage />} />
 
-                    <Route
-                      path="/"
-                      element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <FridgeList />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/"
+                        element={
+                          <ProtectedRoute>
+                            <Layout>
+                              <FridgeList />
+                            </Layout>
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/inventory"
-                      element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <InventoryList />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/inventory"
+                        element={
+                          <ProtectedRoute>
+                            <Layout>
+                              <InventoryList />
+                            </Layout>
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/add"
-                      element={
-                        <ProtectedRoute>
-                          <AddItem />
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/add"
+                        element={
+                          <ProtectedRoute>
+                            <AddItem />
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/search"
-                      element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <SearchPage />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/search"
+                        element={
+                          <ProtectedRoute>
+                            <Layout>
+                              <SearchPage />
+                            </Layout>
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/history"
-                      element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <HistoryPage />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/history"
+                        element={
+                          <ProtectedRoute>
+                            <Layout>
+                              <HistoryPage />
+                            </Layout>
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/settings"
-                      element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <SettingsPage />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
+                      <Route
+                        path="/settings"
+                        element={
+                          <ProtectedRoute>
+                            <Layout>
+                              <SettingsPage />
+                            </Layout>
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    <Route
-                      path="/test-fridge-list"
-                      element={<TestFridgeList />}
-                    />
-                  </Routes>
-                </InventoryProvider>
-              </FridgeProvider>
-            </AuthProvider>
-          </ErrorBoundary>
+                      <Route
+                        path="/test-fridge-list"
+                        element={<TestFridgeList />}
+                      />
+                    </Routes>
+                  </InventoryProvider>
+                </FridgeProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </ModalProvider>
         </ThemeProvider>
       </InstallProvider>
     </BrowserRouter>

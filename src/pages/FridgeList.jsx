@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFridge } from "../context/FridgeContext";
 import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
 import { GiCabbage, GiCardboardBox } from "react-icons/gi";
 import Toast from "../components/Toast";
 import { useTranslation } from "react-i18next";
@@ -19,6 +20,7 @@ export default function FridgeList() {
     updateFridge,
   } = useFridge();
   const { items } = useInventory(); // To calculate stats
+  const { showAlert, showConfirm } = useModal();
   const navigate = useNavigate();
 
   // Edit Mode state
@@ -71,7 +73,7 @@ export default function FridgeList() {
     });
 
     if (isDuplicate) {
-      alert("이미 존재하는 이름입니다. 다른 이름을 입력해주세요.");
+      await showAlert("이미 존재하는 이름입니다. 다른 이름을 입력해주세요.");
       return;
     }
 
@@ -92,7 +94,7 @@ export default function FridgeList() {
       setFridgeName("");
       setFridgeType("fridge");
     } catch (error) {
-      alert("Failed to save fridge: " + error.message);
+      await showAlert("Failed to save fridge: " + error.message);
     }
   };
 
@@ -100,12 +102,12 @@ export default function FridgeList() {
     e.preventDefault(); // Prevent Link navigation
     e.stopPropagation();
 
-    if (!confirm(t("fridge.deleteConfirm", { name }))) return;
+    if (!(await showConfirm(t("fridge.deleteConfirm", { name })))) return;
 
     try {
       await deleteFridge(id);
     } catch (error) {
-      alert("냉장고 삭제 실패: " + error.message);
+      await showAlert("냉장고 삭제 실패: " + error.message);
     }
   };
 

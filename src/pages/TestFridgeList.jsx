@@ -2,15 +2,17 @@ import React, { useMemo } from "react";
 import FridgeList from "./FridgeList";
 import Layout from "../components/Layout";
 import { AuthContext } from "../context/AuthContext";
-import { FridgeContext } from "../context/FridgeContext";
+import { useFridge } from "../context/FridgeContext";
+import { useModal } from "../context/ModalContext";
 import { InventoryContext } from "../context/InventoryContext";
+import { ModalProvider } from "../context/ModalContext";
 
 export default function TestFridgeList() {
   // Mock Data
   const mockAuth = useMemo(
     () => ({
       currentUser: { uid: "test-user", email: "test@example.com" },
-      logout: () => alert("Logout clicked"),
+      logout: () => console.log("Logout clicked"),
       familyId: "test-family",
     }),
     []
@@ -32,9 +34,9 @@ export default function TestFridgeList() {
     () => ({
       fridges: mockFridges,
       loading: false,
-      addFridge: async () => alert("Add Fridge"),
-      deleteFridge: async () => alert("Delete Fridge"),
-      updateFridge: async () => alert("Update Fridge"),
+      addFridge: async () => console.log("Add Fridge"),
+      deleteFridge: async () => console.log("Delete Fridge"),
+      updateFridge: async () => console.log("Update Fridge"),
     }),
     [mockFridges]
   );
@@ -77,9 +79,11 @@ export default function TestFridgeList() {
     <AuthContext.Provider value={mockAuth}>
       <FridgeContext.Provider value={mockFridgeContext}>
         <InventoryContext.Provider value={mockInventoryContext}>
-          <Layout>
-            <FridgeList />
-          </Layout>
+          <ModalProvider>
+            <Layout>
+              <FridgeList />
+            </Layout>
+          </ModalProvider>
         </InventoryContext.Provider>
       </FridgeContext.Provider>
     </AuthContext.Provider>

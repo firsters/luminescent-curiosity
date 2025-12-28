@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
 import { getDaysUntilExpiry } from "../lib/dateUtils";
+import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
 
 export default function ItemCard({
   item,
@@ -10,6 +12,7 @@ export default function ItemCard({
   onDelete,
   mode = "default",
 }) {
+  const { showConfirm } = useModal();
   const { days, badge, itemBgClass } = useMemo(() => {
     if (mode === "history") {
       const dateObj = new Date(item.consumedDate);
@@ -171,10 +174,14 @@ export default function ItemCard({
         {mode === "history" ? (
           <div className="flex items-center gap-1.5">
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (confirm(`${item.name}을(를) 재고로 복구하시겠습니까?`)) {
+                if (
+                  await showConfirm(
+                    `${item.name}을(를) 재고로 복구하시겠습니까?`
+                  )
+                ) {
                   onRestore(item.id);
                 }
               }}
@@ -186,10 +193,10 @@ export default function ItemCard({
               </span>
             </button>
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (confirm("기록을 영구 삭제하시겠습니까?")) {
+                if (await showConfirm("기록을 영구 삭제하시겠습니까?")) {
                   onDelete(item.id);
                 }
               }}
@@ -203,10 +210,12 @@ export default function ItemCard({
           </div>
         ) : (
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (confirm(`${item.name}을(를) 소비 처리하시겠습니까?`)) {
+              if (
+                await showConfirm(`${item.name}을(를) 소비 처리하시겠습니까?`)
+              ) {
                 onConsume(item.id);
               }
             }}

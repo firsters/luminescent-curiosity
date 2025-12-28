@@ -34,7 +34,8 @@ export async function analyzeFoodImage(imageFile) {
       Analyze this image of food. Identify the main food item and return a JSON object with:
       - name: A short, concise name of the food in Korean (e.g., "사과", "우유").
       - category: One of [fruit, vegetable, meat, dairy, frozen, drink, sauce, snack] best matching the item.
-      - expiryDays: Estimated shelf life in days from now (integer). E.g., for fresh fruit ~7, milk ~10, frozen ~30.
+      - detectedExpiryDate: If you can clearly see a printed expiration date (소비기한/유통기한) in the image, return it in YYYY-MM-DD format. If multiple dates appear (like manufacturing date vs expiry date), choose the later one (expiry). If NOT clearly visible, return null.
+      - estimatedExpiryDays: Provide an estimated shelf life in days from today (integer) based on typical food safety for this specific item. E.g., fresh milk ~7, eggs ~20.
       - boundingBox: [ymin, xmin, ymax, xmax] of the main food item alone, in normalized coordinates (0-1000).
 
       Return ONLY the JSON string. No markdown block.
@@ -50,20 +51,25 @@ export async function analyzeFoodImage(imageFile) {
     const cleanedText = text.replace(/```json|```/g, "").trim();
     const data = JSON.parse(cleanedText);
 
-    // Calculate generic expiry date
-    const today = new Date();
-    const expiryDate = new Date(today);
-    expiryDate.setDate(today.getDate() + (data.expiryDays || 7));
+    let expiryDateStr = data.detectedExpiryDate;
 
-    // Format YYYY-MM-DD
-    const expiryDateStr = `${expiryDate.getFullYear()}-${String(
-      expiryDate.getMonth() + 1
-    ).padStart(2, "0")}-${String(expiryDate.getDate()).padStart(2, "0")}`;
+    if (!expiryDateStr) {
+      // Calculate estimated expiry date if none detected
+      const today = new Date();
+      const expiryDate = new Date(today);
+      expiryDate.setDate(today.getDate() + (data.estimatedExpiryDays || 7));
+
+      // Format YYYY-MM-DD
+      expiryDateStr = `${expiryDate.getFullYear()}-${String(
+        expiryDate.getMonth() + 1
+      ).padStart(2, "0")}-${String(expiryDate.getDate()).padStart(2, "0")}`;
+    }
 
     return {
       name: data.name,
       category: data.category,
       expiryDate: expiryDateStr,
+      isDetected: !!data.detectedExpiryDate, // Flag to indicate if date was actually read from image
       boundingBox: data.boundingBox, // [ymin, xmin, ymax, xmax] (0-1000)
     };
   } catch (error) {

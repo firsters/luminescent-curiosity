@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
 import { useFridge } from "../context/FridgeContext";
 import { fetchProductData } from "../lib/productFetcher";
 import { uploadImage } from "../lib/storage";
@@ -20,7 +21,13 @@ import { useInventory, CATEGORY_LABELS } from "../context/InventoryContext";
 export default function AddItem() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addItem, updateItem, categories, updateCategories } = useInventory();
+  const { 
+    addItem, 
+    updateItem, 
+    categories, 
+    updateCategories
+  } = useInventory();
+  const { showAlert, showConfirm } = useModal();
   const { fridges } = useFridge();
 
   // Check if we are in Edit Mode
@@ -98,8 +105,19 @@ export default function AddItem() {
   };
 
   const handleChipChange = (field, value) => {
-    // Default Unit Logic based on Category
+    // Default Unit & Expiry Logic based on Category
     if (field === "foodCategory") {
+      const categoryObj = categories.find((c) => c.id === value);
+      const defaultDays = categoryObj?.defaultExpiryDays || 7;
+
+      const today = new Date();
+      const expiryDate = new Date(today);
+      expiryDate.setDate(today.getDate() + defaultDays);
+
+      const expiryStr = `${expiryDate.getFullYear()}-${String(
+        expiryDate.getMonth() + 1
+      ).padStart(2, "0")}-${String(expiryDate.getDate()).padStart(2, "0")}`;
+
       let defaultUnit = "g";
       if (["dairy", "drink", "sauce"].includes(value)) defaultUnit = "ml";
       else if (["meat", "vegetable", "fruit"].includes(value))
@@ -109,6 +127,7 @@ export default function AddItem() {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
+        expiryDate: expiryStr,
         capacityUnit: defaultUnit,
       }));
     } else {
@@ -123,8 +142,8 @@ export default function AddItem() {
     }));
   };
 
-  const handleCategoryDelete = (id) => {
-    if (!confirm("이 카테고리를 삭제하시겠습니까?")) return;
+  const handleCategoryDelete = async (id) => {
+    if (!(await showConfirm("이 카테고리를 삭제하시겠습니까?"))) return;
     const newCats = categories.filter((c) => c.id !== id);
     updateCategories(newCats);
 
@@ -138,7 +157,7 @@ export default function AddItem() {
     if (!newCategoryName.trim()) return;
     const newId = newCategoryName.trim();
     if (categories.some((c) => c.label === newCategoryName.trim())) {
-      return alert("이미 존재하는 카테고리입니다.");
+      return await showAlert("이미 존재하는 카테고리입니다.");
     }
 
     const newCats = [
@@ -187,7 +206,7 @@ export default function AddItem() {
         setImagePreview(URL.createObjectURL(croppedBlob));
       }
     } catch (error) {
-      alert("배경 제거 중 오류가 발생했습니다.");
+      await showAlert("배경 제거 중 오류가 발생했습니다.");
     }
   };
 
@@ -203,7 +222,7 @@ export default function AddItem() {
         // 1. AI Analysis
         const aiResult = await analyzeFoodImage(compressedFile);
         if (aiResult?.error) {
-          alert(`❌ 오류 발생: ${aiResult.error}`);
+          await showAlert(`❌ 오류 발생: ${aiResult.error}`);
         } else if (aiResult) {
           setFormData((prev) => ({
             ...prev,
@@ -246,13 +265,13 @@ export default function AddItem() {
           }
 
           // Restore Feedback Alert
-          alert(
-            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
+          await showAlert(
+            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n소비기한: ${aiResult.expiryDate}${aiResult.isDetected ? " (사진에서 인식됨)" : " (권장 기한)"}\n\n결과가 자동으로 입력되었습니다.`
           );
         }
       } catch (error) {
         console.error("Image processing/AI failed:", error);
-        alert("이미지 처리 중 오류가 발생했습니다.");
+        await showAlert("이미지 처리 중 오류가 발생했습니다.");
       } finally {
         setIsAnalyzing(false);
         setLoading(false);
@@ -285,13 +304,13 @@ export default function AddItem() {
           setImageFile(null);
           setImagePreview(product.imageUrl);
         }
-        alert(
+        await showAlert(
           `제품을 찾았습니다:\n${fullName}\n(카테고리: ${product.category})`
         );
       } else {
         // Product Not Found -> PROMPT Manual Entry
         if (
-          confirm(
+          await showConfirm(
             `제품 정보를 찾을 수 없습니다.\n(바코드: ${barcode})\n\n직접 등록하시겠습니까?`
           )
         ) {
@@ -315,8 +334,8 @@ export default function AddItem() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name) return alert("이름을 입력해주세요.");
-    if (!formData.fridgeId) return alert("보관할 냉장고를 선택해주세요.");
+    if (!formData.name) return await showAlert("이름을 입력해주세요.");
+    if (!formData.fridgeId) return await showAlert("보관할 냉장고를 선택해주세요.");
 
     setLoading(true);
     try {
@@ -367,7 +386,7 @@ export default function AddItem() {
         { replace: true }
       );
     } catch (error) {
-      alert((isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message);
+      await showAlert((isEditMode ? "수정" : "적재") + " 중 오류 발생: " + error.message);
     } finally {
       setLoading(false);
     }

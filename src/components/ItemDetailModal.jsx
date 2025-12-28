@@ -1,6 +1,8 @@
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { safeDateToIso, getDaysUntilExpiry } from "../lib/dateUtils";
+import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
 
 export default function ItemDetailModal({
   item,
@@ -13,6 +15,7 @@ export default function ItemDetailModal({
   onPrev,
 }) {
   const navigate = useNavigate();
+  const { showConfirm } = useModal();
 
   if (!item) return null;
 
@@ -175,8 +178,8 @@ export default function ItemDetailModal({
               수정
             </button>
             <button
-              onClick={() => {
-                if (confirm("삭제하시겠습니까? (소비되지 않음)")) {
+              onClick={async () => {
+                if (await showConfirm("삭제하시겠습니까? (소비되지 않음)")) {
                   onDelete();
                 }
               }}

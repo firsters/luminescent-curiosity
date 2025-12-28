@@ -19,14 +19,14 @@ import Toast from "../components/Toast";
 export const InventoryContext = createContext();
 
 export const DEFAULT_CATEGORIES = [
-  { id: "fruit", label: "과일" },
-  { id: "vegetable", label: "채소" },
-  { id: "meat", label: "육류" },
-  { id: "dairy", label: "유제품" },
-  { id: "frozen", label: "냉동" },
-  { id: "drink", label: "음료" },
-  { id: "sauce", label: "소스" },
-  { id: "snack", label: "간식" },
+  { id: "fruit", label: "과일", defaultExpiryDays: 7 },
+  { id: "vegetable", label: "채소", defaultExpiryDays: 5 },
+  { id: "meat", label: "육류", defaultExpiryDays: 3 },
+  { id: "dairy", label: "유제품", defaultExpiryDays: 10 },
+  { id: "frozen", label: "냉동", defaultExpiryDays: 90 },
+  { id: "drink", label: "음료", defaultExpiryDays: 30 },
+  { id: "sauce", label: "소스", defaultExpiryDays: 180 },
+  { id: "snack", label: "간식", defaultExpiryDays: 60 },
 ];
 
 export const CATEGORY_LABELS = {
@@ -60,7 +60,6 @@ export function InventoryProvider({ children }) {
     localStorage.setItem("fridgy_categories", JSON.stringify(newCategories));
   };
   const [toast, setToast] = useState({ visible: false, message: "" });
-
   const showToast = (message) => {
     setToast({ visible: true, message });
   };

@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
 
 import { useInstallPrompt } from "../context/InstallContext";
 import { useTheme } from "../context/ThemeContext";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { currentUser, logout, familyId, joinFamily, checkLastMember } =
+  const { currentUser, logout, familyId, joinFamily, checkLastMember, deleteAccount } =
     useAuth();
   const { removeItemsByFilter } = useInventory();
+  const { showAlert, showConfirm } = useModal();
   const { theme, setTheme } = useTheme();
 
   // Notification State
@@ -49,14 +51,14 @@ export default function SettingsPage() {
 
     const handleDelete = async (e) => {
       e.preventDefault();
-      if (!confirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다."))
+      if (!(await showConfirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.")))
         return;
 
       setLoading(true);
       setError("");
       try {
         await deleteAccount(password);
-        alert("회원 탈퇴가 완료되었습니다.");
+        await showAlert("회원 탈퇴가 완료되었습니다.");
         navigate("/login");
       } catch (err) {
         console.error(err);
@@ -158,13 +160,13 @@ export default function SettingsPage() {
         message += `\n기존 냉장고 데이터는 보이지 않게 됩니다.`;
       }
 
-      if (!confirm(message)) {
+      if (!(await showConfirm(message))) {
         setIsJoining(false);
         return;
       }
 
       await joinFamily(inviteCode);
-      alert("가족 그룹이 변경되었습니다! 이제 공유된 냉장고를 볼 수 있습니다.");
+      await showAlert("가족 그룹이 변경되었습니다! 이제 공유된 냉장고를 볼 수 있습니다.");
       setInviteCode("");
     } catch (error) {
       console.error(error);
@@ -180,14 +182,14 @@ export default function SettingsPage() {
       !deleteFilters.expired &&
       !deleteFilters.consumed
     ) {
-      alert("삭제할 항목을 하나 이상 선택해주세요.");
+      await showAlert("삭제할 항목을 하나 이상 선택해주세요.");
       return;
     }
 
     if (
-      !confirm(
+      !(await showConfirm(
         "선택한 항목들을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."
-      )
+      ))
     )
       return;
 
@@ -198,30 +200,30 @@ export default function SettingsPage() {
         includeExpired: deleteFilters.expired,
         includeConsumed: deleteFilters.consumed,
       });
-      alert(`${count}개의 항목이 삭제되었습니다.`);
+      await showAlert(`${count}개의 항목이 삭제되었습니다.`);
       setIsDataModalOpen(false);
       setDeleteFilters({ available: false, expired: false, consumed: false });
     } catch (error) {
       console.error(error);
-      alert("삭제 실패: " + error.message);
+      await showAlert("삭제 실패: " + error.message);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const copyMyCode = () => {
+  const copyMyCode = async () => {
     navigator.clipboard.writeText(familyId);
-    alert("내 가족 코드가 복사되었습니다.\n가족에게 공유하세요!");
+    await showAlert("내 가족 코드가 복사되었습니다.\n가족에게 공유하세요!");
   };
 
   const handleLogout = async () => {
-    if (confirm("로그아웃 하시겠습니까?")) {
+    if (await showConfirm("로그아웃 하시겠습니까?")) {
       try {
         await logout();
         navigate("/login");
       } catch (e) {
         console.error(e);
-        alert("로그아웃 실패");
+        await showAlert("로그아웃 실패");
       }
     }
   };
@@ -233,7 +235,7 @@ export default function SettingsPage() {
   const handleCheckUpdate = async () => {
     if ("serviceWorker" in navigator) {
       if (needRefresh) {
-        alert(
+        await showAlert(
           "이미 새로운 업데이트가 준비되어 있습니다.\n아래 '새로운 버전 업데이트' 버튼을 눌러주세요."
         );
         return;
@@ -263,30 +265,30 @@ export default function SettingsPage() {
 
         if (newWorkerFound || needRefresh) {
           console.log("Update found.");
-          alert(
+          await showAlert(
             "새로운 버전이 준비되었습니다.\n'새로운 버전 업데이트' 버튼을 눌러주세요."
           );
         } else {
-          alert(
+          await showAlert(
             "현재 최신 버전을 사용 중입니다.\n(버전: " + __APP_VERSION__ + ")"
           );
         }
       } catch (e) {
         console.error("Update check failed:", e);
-        // On iOS, if update() throws, it might be because it's already checking or specific PWA restrictions.
+        // on iOS, if update() throws, it might be because it's already checking or specific PWA restrictions.
         // We can just check if needRefresh is true now.
         if (needRefresh) {
-          alert(
+          await showAlert(
             "새로운 버전이 준비되었습니다.\n'새로운 버전 업데이트' 버튼을 눌러주세요."
           );
         } else {
-          alert(
+          await showAlert(
             "업데이트 확인 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
           );
         }
       }
     } else {
-      alert("이 브라우저는 PWA 업데이트를 지원하지 않습니다.");
+      await showAlert("이 브라우저는 PWA 업데이트를 지원하지 않습니다.");
     }
   };
 
@@ -404,7 +406,7 @@ export default function SettingsPage() {
                         navigator.clipboard.writeText(
                           `${shareData.text}\n🔗 앱 링크: ${shareData.url}`
                         );
-                        alert(
+                        await showAlert(
                           "초대 메시지가 복사되었습니다.\n메신저에 붙여넣어 가족을 초대하세요!"
                         );
                       }

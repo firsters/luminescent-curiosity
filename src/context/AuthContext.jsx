@@ -12,6 +12,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
+import { useModal } from "./ModalContext";
 import {
   doc,
   getDoc,
@@ -37,6 +38,7 @@ export function AuthProvider({ children }) {
 
   // The family ID determines which inventory/fridges the user sees
   const [familyId, setFamilyId] = useState(null);
+  const { showAlert } = useModal();
 
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
@@ -65,7 +67,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Failed to send verification email:", error);
       // We don't block account creation if email fails, but user will be stuck at verify screen
-      alert("인증 메일 전송 실패: " + error.message);
+      await showAlert("인증 메일 전송 실패: " + error.message);
     }
 
     // Create User Document in Firestore
@@ -107,7 +109,9 @@ export function AuthProvider({ children }) {
 
     const userDocRef = doc(db, "users", currentUser.uid);
     const userDocSnap = await getDoc(userDocRef);
-    const currentFamilyId = userDocSnap.exists() ? userDocSnap.data().familyId : null;
+    const currentFamilyId = userDocSnap.exists()
+      ? userDocSnap.data().familyId
+      : null;
 
     if (!currentFamilyId) return { isLastMember: false, currentFamilyId: null };
 
@@ -160,8 +164,8 @@ export function AuthProvider({ children }) {
 
     // 2. If last member, clean up old family data
     if (isLastMember && currentFamilyId && currentFamilyId !== newFamilyId) {
-       console.log("Last member leaving family. Cleaning up data...");
-       await cleanupFamilyData(currentFamilyId);
+      console.log("Last member leaving family. Cleaning up data...");
+      await cleanupFamilyData(currentFamilyId);
     }
 
     // 3. Move to new family
@@ -189,21 +193,25 @@ export function AuthProvider({ children }) {
 
       if (currentFamilyId) {
         if (isLastMember) {
-          console.log("Last family member leaving. Deleting all shared data...");
+          console.log(
+            "Last family member leaving. Deleting all shared data..."
+          );
           // Delete shared data first
           await cleanupFamilyData(currentFamilyId);
           // Then delete user doc
           await deleteDoc(userDocRef);
         } else {
-          console.log("Leaving family group. Shared data retained for other members.");
+          console.log(
+            "Leaving family group. Shared data retained for other members."
+          );
           await deleteDoc(userDocRef);
         }
       } else {
-          // No family ID? Just delete user doc if it exists
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-              await deleteDoc(userDocRef);
-          }
+        // No family ID? Just delete user doc if it exists
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          await deleteDoc(userDocRef);
+        }
       }
     } catch (error) {
       console.error("Error cleaning up user data:", error);

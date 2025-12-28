@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_bg.png";
 import { useTranslation } from "react-i18next";
+import { useInstallPrompt } from "../context/InstallContext";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -16,6 +17,18 @@ export default function Login() {
   const [message, setMessage] = useState(""); // Success message
   const { login, signup, resetPassword } = useAuth();
   const navigate = useNavigate();
+
+  // Install Prompt Logic
+  const { deferredPrompt, clearPrompt, isIos, isStandalone } =
+    useInstallPrompt();
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the login install prompt: ${outcome}`);
+    clearPrompt();
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -252,6 +265,64 @@ export default function Login() {
             )}
           </p>
         </div>
+
+        {/* App Install Section for PWA Onboarding */}
+        {!isStandalone && (
+          <div className="mt-8 mb-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallClick}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white/50 dark:bg-white/5 border border-primary/20 p-4 transition-all hover:bg-white/80 dark:hover:bg-white/10 active:scale-95 group"
+              >
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <span className="material-symbols-outlined">download</span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">
+                    Fridgy 앱 설치하기
+                  </span>
+                  <p className="text-[10px] text-text-sub-light dark:text-text-sub-dark text-left">
+                    홈 화면에 추가하여 앱처럼 편리하게 사용하세요
+                  </p>
+                </div>
+                <span className="ml-auto material-symbols-outlined text-gray-400 group-hover:translate-x-1 transition-transform">
+                  chevron_right
+                </span>
+              </button>
+            )}
+
+            {!deferredPrompt && isIos && (
+              <div className="w-full rounded-2xl bg-white/50 dark:bg-white/5 border border-primary/10 p-5 backdrop-blur-sm">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="material-symbols-outlined">
+                      smart_display
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-bold text-text-main-light dark:text-text-main-dark">
+                      아이폰 앱 설치 가이드
+                    </span>
+                    <p className="text-[11px] text-text-sub-light dark:text-text-sub-dark leading-relaxed">
+                      Safari 브라우저 하단의{" "}
+                      <strong className="text-primary font-bold">
+                        공유 버튼{" "}
+                        <span className="inline-flex align-middle material-symbols-outlined text-[14px]">
+                          ios_share
+                        </span>
+                      </strong>{" "}
+                      을 누른 후 <br />
+                      <strong className="text-primary font-bold">
+                        '홈 화면에 추가'
+                      </strong>
+                      를 선택하면 설치가 완료됩니다!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

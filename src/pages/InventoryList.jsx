@@ -185,7 +185,7 @@ export default function InventoryList() {
       {/* Filter Cards (Replaced Stats Dashboard) */}
       <div className="px-4 py-4">
         {/* Status Filters */}
-        <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide mb-2">
+        <div className="flex w-full gap-3 overflow-x-auto pb-2 no-scrollbar mb-2">
           {/* Safe Card */}
           <button
             onClick={() => handleFilterChange("safe")}
@@ -242,7 +242,7 @@ export default function InventoryList() {
         </div>
 
         {/* Category Filters */}
-        <div className="flex w-full gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex w-full gap-2 overflow-x-auto pb-2 no-scrollbar">
           {displayCategories.map((cat) => (
             <button
               key={cat.id}

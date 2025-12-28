@@ -207,7 +207,7 @@ export default function FridgeList() {
 
       <main className="flex flex-col gap-6 px-4 pt-4 pb-20">
         {/* Stats Row */}
-        <div className="flex w-full gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex w-full gap-3 overflow-x-auto pb-2 no-scrollbar">
           <button
             onClick={() => handleStatCardClick("safe", safeCount)}
             className="flex min-w-[140px] flex-col rounded-2xl bg-primary/10 p-4 dark:bg-surface-dark border border-primary/20 active:scale-95 transition-transform text-left"

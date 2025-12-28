@@ -222,7 +222,7 @@ export default function SearchPage() {
       {/* Filters Section */}
       <div className="flex flex-col gap-3 px-4 py-2">
         {/* Row 1: Status */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-xs font-bold text-gray-400 shrink-0 w-12">
             상태
           </span>
@@ -245,7 +245,7 @@ export default function SearchPage() {
         </div>
 
         {/* Row 2: Storage */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-xs font-bold text-gray-400 shrink-0 w-12">
             보관
           </span>
@@ -284,49 +284,50 @@ export default function SearchPage() {
               순서 편집
             </button>
           </div>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {categories.map((cat, idx) => (
               <div key={cat.id} className="relative group shrink-0">
-                <button
-                  onClick={() =>
-                    !isEditingOrder && toggleFilter("category", cat.id)
-                  }
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5
-                              ${
-                                isSelected("category", cat.id) &&
-                                !isEditingOrder
-                                  ? "bg-primary text-white border-primary shadow-sm"
-                                  : "bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
-                              } ${
-                    isEditingOrder
-                      ? "border-primary/50 border-dashed opacity-100"
-                      : ""
-                  }`}
-                >
-                  {isEditingOrder && (
-                    <span
+                {isEditingOrder ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-bold border border-primary bg-primary/10 text-primary shadow-sm">
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         moveCategory(idx, -1);
                       }}
-                      className="material-symbols-outlined text-[14px] hover:text-primary active:scale-125"
+                      disabled={idx === 0}
+                      className="size-6 flex items-center justify-center rounded-full hover:bg-primary/20 active:scale-125 transition-all disabled:opacity-30 disabled:pointer-events-none"
                     >
-                      chevron_left
-                    </span>
-                  )}
-                  {cat.label}
-                  {isEditingOrder && (
-                    <span
+                      <span className="material-symbols-outlined text-[18px]">
+                        chevron_left
+                      </span>
+                    </button>
+                    <span className="px-1">{cat.label}</span>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         moveCategory(idx, 1);
                       }}
-                      className="material-symbols-outlined text-[14px] hover:text-primary active:scale-125"
+                      disabled={idx === categories.length - 1}
+                      className="size-6 flex items-center justify-center rounded-full hover:bg-primary/20 active:scale-125 transition-all disabled:opacity-30 disabled:pointer-events-none"
                     >
-                      chevron_right
-                    </span>
-                  )}
-                </button>
+                      <span className="material-symbols-outlined text-[18px]">
+                        chevron_right
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => toggleFilter("category", cat.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border
+                      ${
+                        isSelected("category", cat.id)
+                          ? "bg-primary text-white border-primary shadow-sm"
+                          : "bg-white dark:bg-surface-dark border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                      }`}
+                  >
+                    {cat.label}
+                  </button>
+                )}
               </div>
             ))}
           </div>

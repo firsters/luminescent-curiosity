@@ -115,11 +115,11 @@ export default function ItemCard({
       {/* Content Section */}
       <div className="flex flex-1 flex-col justify-center min-w-0">
         {/* Name & Quantity */}
-        <div className="flex items-center gap-1.5 mb-1">
-          <p className="text-[#0e1b12] dark:text-white text-base font-bold leading-tight truncate">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 mb-0.5">
+          <p className="text-[#0e1b12] dark:text-white text-base font-bold leading-tight min-w-[3rem]">
             {item.name}
           </p>
-          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium whitespace-nowrap">
+          <p className="text-gray-500 dark:text-gray-400 text-xs font-medium shrink-0">
             {item.capacity ? `${item.capacity}${item.capacityUnit} × ` : ""}
             {item.quantity}
             {item.unit}

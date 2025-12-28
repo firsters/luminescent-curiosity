@@ -7,9 +7,30 @@ html,
 body {
   overscroll-behavior-y: none;
   height: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 @layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
+  }
+  .h-safe {
+    height: env(safe-area-inset-bottom);
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

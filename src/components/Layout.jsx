@@ -26,8 +26,8 @@ export default function Layout({ children }) {
       <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
 
       {/* Bottom Navigation (Stitch Design) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-surface-light pb-safe pt-2 dark:border-white/5 dark:bg-background-dark px-2">
-        <div className="flex items-center justify-around pb-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-surface-light dark:border-white/5 dark:bg-background-dark px-2 pb-safe">
+        <div className="flex items-center justify-around py-2">
           <NavLink to="/" icon="home" label="홈" />
           <NavLink to="/search" icon="search" label="검색" />
           <NavLink to="/add" icon="add_circle" label="추가" highlight />
@@ -35,8 +35,8 @@ export default function Layout({ children }) {
         </div>
       </nav>
 
-      {/* Safe Area Spacer for bottom nav */}
-      <div className="h-6"></div>
+      {/* Safe Area Spacer for bottom nav content avoidance */}
+      <div className="h-safe"></div>
     </div>
   );
 }

@@ -197,38 +197,67 @@ export function InventoryProvider({ children }) {
   async function addItem(itemData) {
     if (!familyId) throw new Error("No family ID found");
 
-    return addDoc(collection(db, "inventory"), {
-      ...itemData,
-      familyId,
-      status: "available", // Default status
-      addedDate: Timestamp.now(),
-      expiryDate: itemData.expiryDate
-        ? Timestamp.fromDate(itemData.expiryDate)
-        : null,
-      createdBy: currentUser?.uid,
-    });
+    try {
+      const docRef = await addDoc(collection(db, "inventory"), {
+        ...itemData,
+        familyId,
+        status: "available", // Default status
+        addedDate: Timestamp.now(),
+        expiryDate: itemData.expiryDate
+          ? Timestamp.fromDate(itemData.expiryDate)
+          : null,
+        createdBy: currentUser?.uid,
+      });
+      showToast(`${itemData.name}이(가) 추가되었습니다.`);
+      return docRef;
+    } catch (error) {
+      console.error("addItem failed:", error);
+      showToast("추가 중 오류가 발생했습니다.");
+      throw error;
+    }
   }
 
   async function deleteItem(id) {
-    return deleteDoc(doc(db, "inventory", id));
+    try {
+      await deleteDoc(doc(db, "inventory", id));
+      showToast("아이템이 삭제되었습니다.");
+    } catch (error) {
+      console.error("deleteItem failed:", error);
+      showToast("삭제 중 오류가 발생했습니다.");
+      throw error;
+    }
   }
 
   async function updateItem(id, updates) {
-    const safeUpdates = { ...updates };
-    if (safeUpdates.expiryDate instanceof Date) {
-      safeUpdates.expiryDate = Timestamp.fromDate(safeUpdates.expiryDate);
+    try {
+      const safeUpdates = { ...updates };
+      if (safeUpdates.expiryDate instanceof Date) {
+        safeUpdates.expiryDate = Timestamp.fromDate(safeUpdates.expiryDate);
+      }
+      if (safeUpdates.addedDate instanceof Date) {
+        safeUpdates.addedDate = Timestamp.fromDate(safeUpdates.addedDate);
+      }
+      await updateDoc(doc(db, "inventory", id), safeUpdates);
+      showToast("수정되었습니다.");
+    } catch (error) {
+      console.error("updateItem failed:", error);
+      showToast("수정 중 오류가 발생했습니다.");
+      throw error;
     }
-    if (safeUpdates.addedDate instanceof Date) {
-      safeUpdates.addedDate = Timestamp.fromDate(safeUpdates.addedDate);
-    }
-    return updateDoc(doc(db, "inventory", id), safeUpdates);
   }
 
   async function consumeItem(id) {
-    return updateDoc(doc(db, "inventory", id), {
-      status: "consumed",
-      consumedDate: Timestamp.now(),
-    });
+    try {
+      await updateDoc(doc(db, "inventory", id), {
+        status: "consumed",
+        consumedDate: Timestamp.now(),
+      });
+      showToast("소비 완료되었습니다.");
+    } catch (error) {
+      console.error("consumeItem failed:", error);
+      showToast("소비 처리 중 오류가 발생했습니다.");
+      throw error;
+    }
   }
 
   async function removeItemsByFilter({

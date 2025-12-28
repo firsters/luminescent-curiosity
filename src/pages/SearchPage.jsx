@@ -152,6 +152,9 @@ export default function SearchPage() {
       matchesCategory = selectedFilters.category.includes(item.foodCategory);
     }
 
+    // 0. Status Check: Exclude consumed/discarded items
+    if (item.status === "consumed" || item.status === "discarded") return false;
+
     return matchesSearch && matchesStatus && matchesStorage && matchesCategory;
   });
 

@@ -172,34 +172,41 @@ export default function AddItem() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Background Removal Handler
-  const handleRemoveBackground = async () => {
-    if (!imageFile) return;
+  // Refactored Background Removal Logic (Helper)
+  const processBackgroundRemoval = async (file, boundingBox = null) => {
+    if (!file) return null;
     try {
       setIsProcessing(true);
-      const transparentBlob = await removeBackground(imageFile);
+      const transparentBlob = await removeBackground(file);
 
       // Use AI Box for more precise vertical cropping if available
       let croppedBlob;
-      if (lastAiBox) {
-        console.log("Using AI Box for cropping:", lastAiBox);
-        croppedBlob = await cropToBox(transparentBlob, lastAiBox);
+      if (boundingBox) {
+        console.log("Using Bounding Box for cropping:", boundingBox);
+        croppedBlob = await cropToBox(transparentBlob, boundingBox);
       } else {
         // Fallback to alpha-based heuristic
         croppedBlob = await cropTransparent(transparentBlob);
       }
-
-      // Update state with new image
-      setImageFile(croppedBlob);
-      setImagePreview(URL.createObjectURL(croppedBlob));
-
-      // We don't re-analyze automatically to preserve manual edits if any,
-      // but user can re-upload if they want re-analysis.
+      return croppedBlob;
     } catch (error) {
       console.error("BG Removal failed:", error);
-      alert("배경 제거 중 오류가 발생했습니다.");
+      throw error;
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleManualRemoveBackground = async () => {
+    if (!imageFile) return;
+    try {
+      const croppedBlob = await processBackgroundRemoval(imageFile, lastAiBox);
+      if (croppedBlob) {
+        setImageFile(croppedBlob);
+        setImagePreview(URL.createObjectURL(croppedBlob));
+      }
+    } catch (error) {
+      alert("배경 제거 중 오류가 발생했습니다.");
     }
   };
 
@@ -208,13 +215,11 @@ export default function AddItem() {
     if (file) {
       try {
         setIsAnalyzing(true);
-        // setLoading(true);
-
         const compressedFile = await compressImage(file, 600, 0.6);
         setImageFile(compressedFile);
         setImagePreview(URL.createObjectURL(compressedFile));
 
-        // AI Analysis
+        // 1. AI Analysis
         const aiResult = await analyzeFoodImage(compressedFile);
         if (aiResult?.error) {
           alert(`❌ 오류 발생: ${aiResult.error}`);
@@ -225,12 +230,26 @@ export default function AddItem() {
             foodCategory: aiResult.category || prev.foodCategory,
             expiryDate: aiResult.expiryDate || prev.expiryDate,
           }));
-          setLastAiBox(aiResult.boundingBox || null);
-          alert(
-            `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
-          );
-        } else {
-          alert("원인 불명의 오류가 발생했습니다.");
+          const box = aiResult.boundingBox || null;
+          setLastAiBox(box);
+
+          // 2. Automatic Background Removal
+          try {
+            const croppedBlob = await processBackgroundRemoval(
+              compressedFile,
+              box
+            );
+            if (croppedBlob) {
+              setImageFile(croppedBlob);
+              setImagePreview(URL.createObjectURL(croppedBlob));
+            }
+          } catch (bgError) {
+            console.error(
+              "Automatic BG removal failed, keeping original",
+              bgError
+            );
+            // Non-blocking error for automation
+          }
         }
       } catch (error) {
         console.error("Image processing/AI failed:", error);
@@ -470,9 +489,11 @@ export default function AddItem() {
               {isAnalyzing && (
                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white z-10 backdrop-blur-sm animate-pulse">
                   <span className="material-symbols-outlined text-4xl animate-spin mb-2">
-                    autorenew
+                    {isProcessing ? "auto_fix_high" : "autorenew"}
                   </span>
-                  <span className="font-bold text-lg">AI 분석 중...</span>
+                  <span className="font-bold text-lg">
+                    {isProcessing ? "배경 제거 중..." : "AI 분석 중..."}
+                  </span>
                 </div>
               )}
 
@@ -490,7 +511,7 @@ export default function AddItem() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemoveBackground();
+                    handleManualRemoveBackground();
                   }}
                   disabled={isProcessing}
                   className="px-4 py-2 bg-primary hover:bg-primary-dark rounded-full text-white font-bold text-sm transition-colors disabled:opacity-50 flex items-center gap-1"

@@ -177,7 +177,7 @@ export default function SearchPage() {
   return (
     <div className="flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark pb-20">
       {/* Header */}
-      <header className="flex items-center p-4 sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+      <header className="flex items-center p-4 pt-safe sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
         <button
           onClick={() => navigate(-1)}
           className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
@@ -275,7 +275,7 @@ export default function SearchPage() {
             </span>
             <button
               onClick={() => setIsEditingOrder(!isEditingOrder)}
-              className={`text-[10px] px-2 py-0.5 rounded-md font-black transition-colors ${
+              className={`shrink-0 text-[10px] px-2 py-0.5 rounded-md font-black transition-colors ${
                 isEditingOrder
                   ? "bg-primary text-white"
                   : "bg-slate-100 dark:bg-white/5 text-slate-400"

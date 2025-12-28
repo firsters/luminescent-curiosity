@@ -15,6 +15,17 @@ import {
   cropToBox,
 } from "../lib/imageProcessing";
 
+const CATEGORY_LABELS = {
+  fruit: "과일",
+  vegetable: "채소",
+  meat: "육류",
+  dairy: "유제품",
+  frozen: "냉동",
+  drink: "음료",
+  sauce: "소스",
+  snack: "간식",
+};
+
 export default function AddItem() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -232,6 +243,27 @@ export default function AddItem() {
           }));
           const box = aiResult.boundingBox || null;
           setLastAiBox(box);
+
+          // 3. Auto-Add Category if new
+          if (aiResult.category) {
+            setCategories((prevCats) => {
+              if (!prevCats.find((c) => c.id === aiResult.category)) {
+                console.log("Auto-adding new category:", aiResult.category);
+                const newCat = {
+                  id: aiResult.category,
+                  label:
+                    CATEGORY_LABELS[aiResult.category] || aiResult.category,
+                };
+                const updatedCats = [...prevCats, newCat];
+                localStorage.setItem(
+                  "custom_categories",
+                  JSON.stringify(updatedCats)
+                );
+                return updatedCats;
+              }
+              return prevCats;
+            });
+          }
 
           // 2. Automatic Background Removal
           try {

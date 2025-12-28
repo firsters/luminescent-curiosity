@@ -27,6 +27,10 @@ export default function SearchPage() {
 
   const inputRef = useRef(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Constants & Helpers
   const CATEGORY_LABELS = {
     fruit: "과일",

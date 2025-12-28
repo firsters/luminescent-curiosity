@@ -168,6 +168,32 @@ export default function SearchPage() {
     });
   };
 
+  const groupedItems = useMemo(() => {
+    const groups = {};
+    filteredItems.forEach((item) => {
+      const cat = item.foodCategory || "other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+
+    // Sort categories: 'snack' first, then others by label, 'other' at the end
+    const sortedCategories = Object.keys(groups).sort((a, b) => {
+      if (a === "snack") return -1;
+      if (b === "snack") return 1;
+      if (a === "other") return 1;
+      if (b === "other") return -1;
+      const labelA = CATEGORY_LABELS[a] || a;
+      const labelB = CATEGORY_LABELS[b] || b;
+      return labelA.localeCompare(labelB);
+    });
+
+    return sortedCategories.map((cat) => ({
+      category: cat,
+      label: cat === "other" ? "기타" : CATEGORY_LABELS[cat] || cat,
+      items: groups[cat],
+    }));
+  }, [filteredItems]);
+
   const isSelected = (type, value) => selectedFilters[type].includes(value);
 
   return (
@@ -339,20 +365,38 @@ export default function SearchPage() {
           </h3>
         </div>
 
-        <div className="flex flex-col gap-3 pb-20">
-          {filteredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              fridgeName={getStorageName(item)}
-              onClick={() => setSelectedItem(item)}
-              onConsume={consumeItem}
-            />
+        <div className="flex flex-col gap-6 pb-20">
+          {groupedItems.map((group) => (
+            <div key={group.category} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-xs font-black text-primary uppercase tracking-widest">
+                  {group.label}
+                </span>
+                <div className="h-px flex-1 bg-slate-100 dark:bg-white/5"></div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {group.items.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {group.items.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    fridgeName={getStorageName(item)}
+                    onClick={() => setSelectedItem(item)}
+                    onConsume={consumeItem}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
 
           {filteredItems.length === 0 && (
-            <div className="py-10 text-center text-gray-400">
-              검색 결과가 없습니다.
+            <div className="py-20 flex flex-col items-center justify-center text-gray-400 gap-3">
+              <span className="material-symbols-outlined text-4xl opacity-20">
+                search_off
+              </span>
+              <p className="text-sm font-medium">검색 결과가 없습니다.</p>
             </div>
           )}
         </div>

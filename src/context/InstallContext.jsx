@@ -13,6 +13,8 @@ export function InstallProvider({ children }) {
   const [isStandalone, setIsStandalone] = useState(false);
 
   // PWA Update Logic (Centralized)
+  const [swRegistration, setSwRegistration] = useState(null);
+
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
@@ -20,11 +22,19 @@ export function InstallProvider({ children }) {
   } = useRegisterSW({
     onRegistered(r) {
       console.log("SW Registered: " + r);
+      setSwRegistration(r);
     },
     onRegisterError(error) {
       console.log("SW registration error", error);
     },
   });
+
+  const checkForUpdates = async () => {
+    if (swRegistration) {
+      console.log("Checking for SW updates manually...");
+      await swRegistration.update();
+    }
+  };
 
   const updateServiceWorker = async (reloadPage = true) => {
     console.log("updateServiceWorker called, reloading:", reloadPage);
@@ -70,6 +80,7 @@ export function InstallProvider({ children }) {
     offlineReady,
     needRefresh,
     updateServiceWorker,
+    checkForUpdates,
     setOfflineReady,
     setNeedRefresh,
   };

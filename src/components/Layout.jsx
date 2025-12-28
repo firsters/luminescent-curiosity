@@ -1,15 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 import PullToRefresh from "./PullToRefresh";
+import { useInstallPrompt } from "../context/InstallContext";
 
 export default function Layout({ children }) {
-  // Stitch designs have specific header per page, so Layout mainly handles the shell and bottom nav.
+  const { checkForUpdates } = useInstallPrompt();
 
   const handleRefresh = async () => {
-    // Simulate data refresh
+    console.log("Pull-to-refresh triggered: checking for updates");
+    // Trigger Service Worker update check
+    try {
+      await checkForUpdates();
+    } catch (e) {
+      console.error("Manual SW update check failed:", e);
+    }
+
     // Since we use onSnapshot, data is already real-time.
     // This is mostly for UX or if we restart listeners in the future.
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   };
+  // Stitch designs have specific header per page, so Layout mainly handles the shell and bottom nav.
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">

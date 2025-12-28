@@ -35,6 +35,7 @@ export async function analyzeFoodImage(imageFile) {
       - name: A short, concise name of the food in Korean (e.g., "사과", "우유").
       - category: One of [fruit, vegetable, meat, dairy, frozen, drink, sauce, snack] best matching the item.
       - expiryDays: Estimated shelf life in days from now (integer). E.g., for fresh fruit ~7, milk ~10, frozen ~30.
+      - boundingBox: [ymin, xmin, ymax, xmax] of the main food item alone, in normalized coordinates (0-1000).
 
       Return ONLY the JSON string. No markdown block.
     `;
@@ -63,6 +64,7 @@ export async function analyzeFoodImage(imageFile) {
       name: data.name,
       category: data.category,
       expiryDate: expiryDateStr,
+      boundingBox: data.boundingBox, // [ymin, xmin, ymax, xmax] (0-1000)
     };
   } catch (error) {
     console.error("[Gemini] Analysis failed:", error);

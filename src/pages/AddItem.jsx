@@ -9,7 +9,11 @@ import { compressImage } from "../lib/imageCompression";
 import { safeDateToIso, parseLocal } from "../lib/dateUtils";
 
 import { analyzeFoodImage } from "../lib/gemini";
-import { removeBackground, cropTransparent } from "../lib/imageProcessing";
+import {
+  removeBackground,
+  cropTransparent,
+  cropToBox,
+} from "../lib/imageProcessing";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -66,6 +70,7 @@ export default function AddItem() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [lastAiBox, setLastAiBox] = useState(null);
 
   // Initialize form with Edit Data if available
   useEffect(() => {
@@ -173,7 +178,16 @@ export default function AddItem() {
     try {
       setIsProcessing(true);
       const transparentBlob = await removeBackground(imageFile);
-      const croppedBlob = await cropTransparent(transparentBlob);
+
+      // Use AI Box for more precise vertical cropping if available
+      let croppedBlob;
+      if (lastAiBox) {
+        console.log("Using AI Box for cropping:", lastAiBox);
+        croppedBlob = await cropToBox(transparentBlob, lastAiBox);
+      } else {
+        // Fallback to alpha-based heuristic
+        croppedBlob = await cropTransparent(transparentBlob);
+      }
 
       // Update state with new image
       setImageFile(croppedBlob);
@@ -211,6 +225,7 @@ export default function AddItem() {
             foodCategory: aiResult.category || prev.foodCategory,
             expiryDate: aiResult.expiryDate || prev.expiryDate,
           }));
+          setLastAiBox(aiResult.boundingBox || null);
           alert(
             `✨ AI 분석 완료!\n제품명: ${aiResult.name}\n카테고리: ${aiResult.category}\n\n결과가 자동으로 입력되었습니다.`
           );

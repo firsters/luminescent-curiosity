@@ -47,8 +47,8 @@ export async function cropTransparent(imageBlob) {
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           const alpha = data[(y * w + x) * 4 + 3];
-          // Use a threshold (e.g., 20) instead of 0 to ignore invisible/faint artifacts
-          if (alpha > 20) {
+          // Increased threshold to 40 to ignore faint ghosting/noise at top/bottom
+          if (alpha > 40) {
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;
@@ -97,6 +97,45 @@ export async function cropTransparent(imageBlob) {
       }, "image/png");
     };
 
+    img.onerror = reject;
+    img.src = URL.createObjectURL(imageBlob);
+  });
+}
+
+/**
+ * Crops an image blob based on normalized coordinates [ymin, xmin, ymax, xmax] (0-1000).
+ * @param {Blob} imageBlob
+ * @param {number[]} normalizedBox [ymin, xmin, ymax, xmax]
+ * @returns {Promise<Blob>}
+ */
+export async function cropToBox(imageBlob, normalizedBox) {
+  if (!normalizedBox || normalizedBox.length !== 4) return imageBlob;
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const [ymin, xmin, ymax, xmax] = normalizedBox;
+
+      const left = (xmin / 1000) * img.width;
+      const top = (ymin / 1000) * img.height;
+      const right = (xmax / 1000) * img.width;
+      const bottom = (ymax / 1000) * img.height;
+
+      const width = right - left;
+      const height = bottom - top;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, left, top, width, height, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, "image/png");
+    };
     img.onerror = reject;
     img.src = URL.createObjectURL(imageBlob);
   });

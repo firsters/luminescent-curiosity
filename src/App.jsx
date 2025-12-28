@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { InventoryProvider } from "./context/InventoryContext";
 import { FridgeProvider } from "./context/FridgeContext";
 import { InstallProvider } from "./context/InstallContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import FridgeList from "./pages/FridgeList";
@@ -73,90 +74,92 @@ export default function App() {
   return (
     <BrowserRouter>
       <InstallProvider>
-        <ErrorBoundary>
-          <ReloadPrompt />
-          <AuthProvider>
-            <FridgeProvider>
-              <InventoryProvider>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                  <Route path="/privacy" element={<PrivacyPage />} />
-                  <Route path="/licenses" element={<LicensesPage />} />
+        <ThemeProvider>
+          <ErrorBoundary>
+            <ReloadPrompt />
+            <AuthProvider>
+              <FridgeProvider>
+                <InventoryProvider>
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/terms" element={<TermsPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="/licenses" element={<LicensesPage />} />
 
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <FridgeList />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <FridgeList />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/inventory"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <InventoryList />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/inventory"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <InventoryList />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/add"
-                    element={
-                      <ProtectedRoute>
-                        <AddItem />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/add"
+                      element={
+                        <ProtectedRoute>
+                          <AddItem />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/search"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <SearchPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/search"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <SearchPage />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/history"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <HistoryPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/history"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <HistoryPage />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <SettingsPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <SettingsPage />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/test-fridge-list"
-                    element={<TestFridgeList />}
-                  />
-                </Routes>
-              </InventoryProvider>
-            </FridgeProvider>
-          </AuthProvider>
-        </ErrorBoundary>
+                    <Route
+                      path="/test-fridge-list"
+                      element={<TestFridgeList />}
+                    />
+                  </Routes>
+                </InventoryProvider>
+              </FridgeProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </ThemeProvider>
       </InstallProvider>
     </BrowserRouter>
   );

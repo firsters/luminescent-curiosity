@@ -4,14 +4,14 @@ import { useAuth } from "../context/AuthContext";
 import { useInventory } from "../context/InventoryContext";
 
 import { useInstallPrompt } from "../context/InstallContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { currentUser, logout, familyId, joinFamily, checkLastMember } = useAuth();
+  const { currentUser, logout, familyId, joinFamily, checkLastMember } =
+    useAuth();
   const { removeItemsByFilter } = useInventory();
-
-  // Theme State
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "system");
+  const { theme, setTheme } = useTheme();
 
   // Notification State
   const [expiryAlert, setExpiryAlert] = useState(true);
@@ -213,23 +213,6 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(familyId);
     alert("내 가족 코드가 복사되었습니다.\n가족에게 공유하세요!");
   };
-
-  // Apply Theme
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
 
   const handleLogout = async () => {
     if (confirm("로그아웃 하시겠습니까?")) {
@@ -685,9 +668,7 @@ export default function SettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                  <span className="material-symbols-outlined">
-                    policy
-                  </span>
+                  <span className="material-symbols-outlined">policy</span>
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="text-base font-medium text-text-main-light dark:text-text-main-dark">

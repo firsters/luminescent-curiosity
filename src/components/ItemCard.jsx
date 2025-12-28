@@ -6,6 +6,7 @@ export default function ItemCard({
   fridgeName,
   onClick,
   onConsume,
+  onRestore,
   onDelete,
   mode = "default",
 }) {
@@ -157,21 +158,38 @@ export default function ItemCard({
 
         {/* Quick Action Button */}
         {mode === "history" ? (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (confirm("기록을 영구 삭제하시겠습니까?")) {
-                onDelete(item.id);
-              }
-            }}
-            className="z-10 bg-gray-100 dark:bg-white/10 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 p-1.5 rounded-full transition-colors flex items-center justify-center"
-            title="기록 삭제"
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              delete_outline
-            </span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm(`${item.name}을(를) 재고로 복구하시겠습니까?`)) {
+                  onRestore(item.id);
+                }
+              }}
+              className="z-10 bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-full transition-colors flex items-center justify-center"
+              title="복구"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                replay
+              </span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm("기록을 영구 삭제하시겠습니까?")) {
+                  onDelete(item.id);
+                }
+              }}
+              className="z-10 bg-gray-100 dark:bg-white/10 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 p-1.5 rounded-full transition-colors flex items-center justify-center"
+              title="기록 삭제"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                delete_outline
+              </span>
+            </button>
+          </div>
         ) : (
           <button
             onClick={(e) => {

@@ -264,6 +264,20 @@ export function InventoryProvider({ children }) {
     }
   }
 
+  async function restoreItem(id) {
+    try {
+      await updateDoc(doc(db, "inventory", id), {
+        status: "available",
+        consumedDate: null,
+      });
+      showToast("아이템이 다시 재고로 복구되었습니다.");
+    } catch (error) {
+      console.error("restoreItem failed:", error);
+      showToast("복구 중 오류가 발생했습니다.");
+      throw error;
+    }
+  }
+
   async function removeItemsByFilter({
     includeAvailable,
     includeExpired,
@@ -314,6 +328,7 @@ export function InventoryProvider({ children }) {
     deleteItem,
     updateItem,
     consumeItem,
+    restoreItem,
     removeItemsByFilter,
   };
 

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { getDaysUntilExpiry } from "../lib/dateUtils";
 import { useInventory } from "../context/InventoryContext";
 import { useModal } from "../context/ModalContext";
+import { useFridge } from "../context/FridgeContext";
 
 export default function ItemCard({
   item,
@@ -13,6 +14,12 @@ export default function ItemCard({
   mode = "default",
 }) {
   const { showConfirm } = useModal();
+  const { fridges } = useFridge();
+
+  // Find fridge type for icon
+  const fridge = fridges.find((f) => f.id === item.fridgeId);
+  const fridgeType = fridge?.type || "fridge";
+
   const { days, badge, itemBgClass } = useMemo(() => {
     if (mode === "history") {
       const dateObj = new Date(item.consumedDate);
@@ -131,7 +138,13 @@ export default function ItemCard({
 
         {/* Fridge Name (Style #2) */}
         <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs font-medium">
-          <span className="material-symbols-outlined text-[14px]">kitchen</span>
+          <span className="material-symbols-outlined text-[14px]">
+            {fridgeType === "freezer"
+              ? "ac_unit"
+              : fridgeType === "pantry"
+              ? "inventory_2"
+              : "kitchen"}
+          </span>
           <span className="truncate">{fridgeName}</span>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { safeDateToIso, getDaysUntilExpiry } from "../lib/dateUtils";
 import { useInventory } from "../context/InventoryContext";
 import { useModal } from "../context/ModalContext";
+import { useFridge } from "../context/FridgeContext";
 
 export default function ItemDetailModal({
   item,
@@ -16,6 +17,10 @@ export default function ItemDetailModal({
 }) {
   const navigate = useNavigate();
   const { showConfirm } = useModal();
+  const { fridges } = useFridge();
+
+  const fridge = fridges.find((f) => f.name === fridgeName);
+  const fridgeType = fridge?.type || "fridge";
 
   if (!item) return null;
 
@@ -160,7 +165,14 @@ export default function ItemDetailModal({
             {/* Added Fridge Name Info */}
             <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 col-span-2">
               <p className="text-xs text-text-sub-light mb-1">보관 장소</p>
-              <p className="font-bold text-[#0e1b12] dark:text-white">
+              <p className="font-bold text-[#0e1b12] dark:text-white flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[18px] text-gray-400">
+                  {fridgeType === "freezer"
+                    ? "ac_unit"
+                    : fridgeType === "pantry"
+                    ? "inventory_2"
+                    : "kitchen"}
+                </span>
                 {fridgeName || "미지정"}
               </p>
             </div>

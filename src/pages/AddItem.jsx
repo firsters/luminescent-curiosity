@@ -599,9 +599,9 @@ export default function AddItem() {
                         {fridge.type === "kimchi"
                           ? "ac_unit"
                           : fridge.type === "freezer"
-                          ? "severe_cold"
+                          ? "ac_unit"
                           : fridge.type === "pantry"
-                          ? "shelves"
+                          ? "inventory_2"
                           : "kitchen"}
                       </span>
                       {fridge.name}
@@ -815,7 +815,16 @@ export default function AddItem() {
               <span>{isEditMode ? "저장 중..." : "저장 중..."}</span>
             ) : (
               <>
-                <span className="material-symbols-outlined">kitchen</span>
+                <span className="material-symbols-outlined">
+                  {(() => {
+                    const selectedFridge = fridges.find(
+                      (f) => f.id === formData.fridgeId
+                    );
+                    if (selectedFridge?.type === "freezer") return "ac_unit";
+                    if (selectedFridge?.type === "pantry") return "inventory_2";
+                    return "kitchen";
+                  })()}
+                </span>
                 {isEditMode
                   ? "수정 완료"
                   : `${

@@ -1,16 +1,16 @@
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { safeDateToIso, getDaysUntilExpiry } from "../lib/dateUtils";
-import { useInventory } from \"../context/InventoryContext\";
-import { useModal } from \"../context/ModalContext\";
-import { useFridge } from \"../context/FridgeContext\";
-import { useState } from \"react\";
+import { useInventory } from "../context/InventoryContext";
+import { useModal } from "../context/ModalContext";
+import { useFridge } from "../context/FridgeContext";
+import { useState } from "react";
 import {
   removeBackground,
   cropTransparent,
   cropToBox,
-} from \"../lib/imageProcessing\";
-import { uploadImage } from \"../lib/storage\";
+} from "../lib/imageProcessing";
+import { uploadImage } from "../lib/storage";
 
 export default function ItemDetailModal({
   item,

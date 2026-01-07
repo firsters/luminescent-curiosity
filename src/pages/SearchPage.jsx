@@ -23,8 +23,8 @@ export default function SearchPage() {
 
   // Modal State
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const selectedItem = useMemo(() => 
-    items.find(i => i.id === selectedItemId), 
+  const selectedItem = useMemo(
+    () => items.find((i) => i.id === selectedItemId),
     [items, selectedItemId]
   );
 
@@ -424,9 +424,9 @@ export default function SearchPage() {
       {/* Item Detail Modal */}
       <ItemDetailModal
         item={selectedItem}
-        fridgeName={selectedItem ? getStorageName(selectedItem) : \"\"}
+        fridgeName={selectedItem ? getStorageName(selectedItem) : ""}
         onClose={() => setSelectedItemId(null)}
-        onEdit={() => navigate(\"/add\", { state: { editItem: selectedItem } })}
+        onEdit={() => navigate("/add", { state: { editItem: selectedItem } })}
         onDelete={() => {
           deleteItem(selectedItem.id);
           setSelectedItemId(null);

@@ -46,7 +46,11 @@ export default function InventoryList() {
   };
 
   // Modal State
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const selectedItem = useMemo(
+    () => items.find((i) => i.id === selectedItemId),
+    [items, selectedItemId]
+  );
 
   // Fridge ID to Name lookup
   const fridgeNameMap = useMemo(() => {
@@ -301,7 +305,7 @@ export default function InventoryList() {
                 key={item.id}
                 item={item}
                 fridgeName={fridgeNameMap[item.fridgeId] || "미지정"}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => setSelectedItemId(item.id)}
                 onConsume={consumeItem}
               />
             );
@@ -332,7 +336,7 @@ export default function InventoryList() {
         fridgeName={
           selectedItem ? fridgeNameMap[selectedItem.fridgeId] || "미지정" : ""
         }
-        onClose={() => setSelectedItem(null)}
+        onClose={() => setSelectedItemId(null)}
         onEdit={() => {
           // Pass standardized date strings to avoid router serialization issues
           const safeItem = {
@@ -344,11 +348,11 @@ export default function InventoryList() {
         }}
         onDelete={() => {
           deleteItem(selectedItem.id);
-          setSelectedItem(null);
+          setSelectedItemId(null);
         }}
         onConsume={() => {
           consumeItem(selectedItem.id);
-          setSelectedItem(null);
+          setSelectedItemId(null);
         }}
         // Add Navigation Props
         onNext={(() => {
@@ -357,7 +361,7 @@ export default function InventoryList() {
             (i) => i.id === selectedItem.id
           );
           if (currentIndex >= 0 && currentIndex < filteredItems.length - 1) {
-            return () => setSelectedItem(filteredItems[currentIndex + 1]);
+            return () => setSelectedItemId(filteredItems[currentIndex + 1].id);
           }
           return null;
         })()}
@@ -367,7 +371,7 @@ export default function InventoryList() {
             (i) => i.id === selectedItem.id
           );
           if (currentIndex > 0) {
-            return () => setSelectedItem(filteredItems[currentIndex - 1]);
+            return () => setSelectedItemId(filteredItems[currentIndex - 1].id);
           }
           return null;
         })()}

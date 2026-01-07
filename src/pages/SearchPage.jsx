@@ -22,7 +22,11 @@ export default function SearchPage() {
   });
 
   // Modal State
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const selectedItem = useMemo(() => 
+    items.find(i => i.id === selectedItemId), 
+    [items, selectedItemId]
+  );
 
   // Recent searches
   const [recentSearches, setRecentSearches] = useState(["계란", "우유"]);
@@ -398,7 +402,7 @@ export default function SearchPage() {
                     key={item.id}
                     item={item}
                     fridgeName={getStorageName(item)}
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => setSelectedItemId(item.id)}
                     onConsume={consumeItem}
                   />
                 ))}
@@ -420,16 +424,16 @@ export default function SearchPage() {
       {/* Item Detail Modal */}
       <ItemDetailModal
         item={selectedItem}
-        fridgeName={selectedItem ? getStorageName(selectedItem) : ""}
-        onClose={() => setSelectedItem(null)}
-        onEdit={() => navigate("/add", { state: { editItem: selectedItem } })}
+        fridgeName={selectedItem ? getStorageName(selectedItem) : \"\"}
+        onClose={() => setSelectedItemId(null)}
+        onEdit={() => navigate(\"/add\", { state: { editItem: selectedItem } })}
         onDelete={() => {
           deleteItem(selectedItem.id);
-          setSelectedItem(null);
+          setSelectedItemId(null);
         }}
         onConsume={() => {
           consumeItem(selectedItem.id);
-          setSelectedItem(null);
+          setSelectedItemId(null);
         }}
         // Add Navigation Props
         onNext={(() => {
@@ -438,7 +442,7 @@ export default function SearchPage() {
             (i) => i.id === selectedItem.id
           );
           if (currentIndex >= 0 && currentIndex < filteredItems.length - 1) {
-            return () => setSelectedItem(filteredItems[currentIndex + 1]);
+            return () => setSelectedItemId(filteredItems[currentIndex + 1].id);
           }
           return null;
         })()}
@@ -448,7 +452,7 @@ export default function SearchPage() {
             (i) => i.id === selectedItem.id
           );
           if (currentIndex > 0) {
-            return () => setSelectedItem(filteredItems[currentIndex - 1]);
+            return () => setSelectedItemId(filteredItems[currentIndex - 1].id);
           }
           return null;
         })()}

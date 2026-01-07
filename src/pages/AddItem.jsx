@@ -239,7 +239,8 @@ export default function AddItem() {
             updateCategories([...categories, newCat]);
           }
 
-          // 2. Automatic Background Removal
+          // Automatic Background Removal (Skipped - now handled in Detail View)
+          /*
           try {
             const croppedBlob = await processBackgroundRemoval(
               compressedFile,
@@ -256,6 +257,7 @@ export default function AddItem() {
             );
             // Non-blocking error for automation
           }
+          */
 
           // Restore Feedback Alert
           await showAlert(
@@ -367,6 +369,7 @@ export default function AddItem() {
         addedDate: parseLocal(formData.buyDate),
         barcode: formData.barcode,
         photoUrl: photoUrl,
+        lastAiBox: lastAiBox, // Save AI bounding box for later cropping
       };
 
       if (isEditMode) {

@@ -1,9 +1,16 @@
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { safeDateToIso, getDaysUntilExpiry } from "../lib/dateUtils";
-import { useInventory } from "../context/InventoryContext";
-import { useModal } from "../context/ModalContext";
-import { useFridge } from "../context/FridgeContext";
+import { useInventory } from \"../context/InventoryContext\";
+import { useModal } from \"../context/ModalContext\";
+import { useFridge } from \"../context/FridgeContext\";
+import { useState } from \"react\";
+import {
+  removeBackground,
+  cropTransparent,
+  cropToBox,
+} from \"../lib/imageProcessing\";
+import { uploadImage } from \"../lib/storage\";
 
 export default function ItemDetailModal({
   item,
@@ -16,8 +23,11 @@ export default function ItemDetailModal({
   onPrev,
 }) {
   const navigate = useNavigate();
-  const { showConfirm } = useModal();
+  const { showConfirm, showAlert } = useModal();
   const { fridges } = useFridge();
+  const { updateItem } = useInventory();
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const fridge = fridges.find((f) => f.name === fridgeName);
   const fridgeType = fridge?.type || "fridge";
@@ -49,6 +59,44 @@ export default function ItemDetailModal({
       } else if (deltaX < 0 && onNext) {
         onNext(); // Swipe Left -> Next
       }
+    }
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!item.photoUrl) return;
+    try {
+      setIsProcessing(true);
+
+      // 1. Fetch current image as Blob
+      const response = await fetch(item.photoUrl);
+      const blob = await response.blob();
+
+      // 2. Remove Background
+      const transparentBlob = await removeBackground(blob);
+
+      // 3. Crop
+      let croppedBlob;
+      if (item.lastAiBox) {
+        croppedBlob = await cropToBox(transparentBlob, item.lastAiBox);
+      } else {
+        croppedBlob = await cropTransparent(transparentBlob);
+      }
+
+      // 4. Upload
+      const newUrl = await uploadImage(croppedBlob);
+
+      // 5. Update Firestore
+      await updateItem(item.id, {
+        photoUrl: newUrl,
+        lastAiBox: null, // Clear box after use
+      });
+
+      await showAlert("배경이 성공적으로 제거되었습니다!");
+    } catch (error) {
+      console.error("Manual BG removal failed:", error);
+      await showAlert("배경 제거 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -108,6 +156,28 @@ export default function ItemDetailModal({
               <span className="text-sm">사진 없음</span>
             </div>
           )}
+
+          {/* Background Removal Button */}
+          {item.photoUrl && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveBackground();
+              }}
+              disabled={isProcessing}
+              className="absolute bottom-4 right-4 size-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 z-20"
+              title="배경 제거"
+            >
+              {isProcessing ? (
+                <span className="material-symbols-outlined animate-spin">
+                  autorenew
+                </span>
+              ) : (
+                <span className="material-symbols-outlined">auto_fix_high</span>
+              )}
+            </button>
+          )}
+
           <button
             onClick={onClose}
             className="absolute top-4 right-4 size-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 transition-colors"

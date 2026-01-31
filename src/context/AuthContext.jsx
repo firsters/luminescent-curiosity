@@ -11,6 +11,8 @@ import {
   deleteUser,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { useModal } from "./ModalContext";
 import {

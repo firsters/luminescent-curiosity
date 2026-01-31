@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = userCredential.user;
 
@@ -82,6 +82,34 @@ export function AuthProvider({ children }) {
 
     setFamilyId(user.uid);
     return userCredential;
+  }
+
+  async function loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if user doc exists
+    const userDocRef = doc(db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) {
+      // Create new user doc
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || user.email.split("@")[0],
+        familyId: user.uid, // Initially their own family
+        joinedAt: new Date(),
+      });
+      setFamilyId(user.uid);
+    } else {
+      // Existing user: set familyId
+      const userData = userDocSnap.data();
+      setFamilyId(userData.familyId);
+    }
+
+    return result;
   }
 
   function logout() {
@@ -136,7 +164,7 @@ export function AuthProvider({ children }) {
     const inventoryRef = collection(db, "inventory");
     const inventoryQ = query(
       inventoryRef,
-      where("familyId", "==", targetFamilyId)
+      where("familyId", "==", targetFamilyId),
     );
     const inventorySnapshot = await getDocs(inventoryQ);
     inventorySnapshot.docs.forEach((doc) => {
@@ -182,7 +210,7 @@ export function AuthProvider({ children }) {
     // 1. Re-authenticate
     const credential = EmailAuthProvider.credential(
       currentUser.email,
-      password
+      password,
     );
     await reauthenticateWithCredential(currentUser, credential);
 
@@ -194,7 +222,7 @@ export function AuthProvider({ children }) {
       if (currentFamilyId) {
         if (isLastMember) {
           console.log(
-            "Last family member leaving. Deleting all shared data..."
+            "Last family member leaving. Deleting all shared data...",
           );
           // Delete shared data first
           await cleanupFamilyData(currentFamilyId);
@@ -202,7 +230,7 @@ export function AuthProvider({ children }) {
           await deleteDoc(userDocRef);
         } else {
           console.log(
-            "Leaving family group. Shared data retained for other members."
+            "Leaving family group. Shared data retained for other members.",
           );
           await deleteDoc(userDocRef);
         }
@@ -270,6 +298,7 @@ export function AuthProvider({ children }) {
     familyId,
     login,
     signup,
+    loginWithGoogle,
     logout,
     resetPassword,
     resendVerificationEmail,

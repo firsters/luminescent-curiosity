@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_bg.png";
 import { useTranslation } from "react-i18next";
 import { useInstallPrompt } from "../context/InstallContext";
+import { FcGoogle } from "react-icons/fc";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export default function Login() {
   const [isReset, setIsReset] = useState(false); // Toggle for password reset
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); // Success message
-  const { login, signup, resetPassword } = useAuth();
+  const { login, signup, resetPassword, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   // Install Prompt Logic
@@ -73,6 +74,24 @@ export default function Login() {
     }
   }
 
+  async function handleGoogleLogin() {
+    setError("");
+    setMessage("");
+    try {
+      await loginWithGoogle();
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      let msg = "Google 로그인 중 오류가 발생했습니다.";
+      if (err.code === "auth/popup-closed-by-user") {
+        msg = "로그인 창이 닫혔습니다.";
+      } else {
+        msg += " " + err.message;
+      }
+      setError(msg);
+    }
+  }
+
   // Toggle modes helper
   const toggleMode = (mode) => {
     setError("");
@@ -113,8 +132,8 @@ export default function Login() {
               {isReset
                 ? t("auth.resetEmailSent")
                 : isSignup
-                ? t("auth.signup")
-                : t("auth.login")}
+                  ? t("auth.signup")
+                  : t("auth.login")}
             </p>
           </div>
 
@@ -223,10 +242,32 @@ export default function Login() {
               {isReset
                 ? t("auth.resetPassword")
                 : isSignup
-                ? t("auth.signup")
-                : t("auth.login")}
+                  ? t("auth.signup")
+                  : t("auth.login")}
             </button>
           </form>
+
+          {!isReset && (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <div className="relative bg-surface-light dark:bg-surface-dark px-2 text-xs text-text-sub-light dark:text-text-sub-dark uppercase">
+                  Or continue with
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="flex w-full items-center justify-center gap-3 rounded-xl bg-white border border-gray-200 py-3.5 text-base font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-98"
+              >
+                <FcGoogle size={24} />
+                <span>Google 계정으로 로그인</span>
+              </button>
+            </div>
+          )}
 
           {!isReset && (
             <div className="mt-4 text-center">
